@@ -6,15 +6,26 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.himebaugh.popularmovies.model.Movie;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemViewHolder> {
 
     private static final String TAG = MovieAdapter.class.getSimpleName();
+
+    //  The base URL will look like: http://image.tmdb.org/t/p/.
+    //  Then you will need a ‘size’, which will be one of the following: "w92", "w154", "w185", "w342", "w500", "w780", or "original". For most phones we recommend using “w185”.
+    //  And finally the poster path returned by the query, in this case “/nBNZadXqJSdt05SHLqgT0HuC5Gm.jpg”
+    //  Combining these three parts gives us a final url of http://image.tmdb.org/t/p/w185//nBNZadXqJSdt05SHLqgT0HuC5Gm.jpg
+
+    private static final String BASE_URL = "http://image.tmdb.org/t/p/";
+    private static final String SIZE = "w500";
+
     private List<Movie> mMovieList;
     private Context mContext;
 
@@ -71,7 +82,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
     public void onBindViewHolder(@NonNull ListItemViewHolder holder, int position) {
 
         Movie movie = mMovieList.get(position);
-        holder.listItemTest.setText(movie.getTitle());
+
+        // holder.listItemTest.setText(movie.getTitle());
+
+        String imageURL = BASE_URL + SIZE + movie.getPosterPath();
+
+        Picasso.get().load(imageURL).into(holder.listItemImageView);
+
     }
 
 
@@ -86,12 +103,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
 
     public class ListItemViewHolder extends RecyclerView.ViewHolder {
 
-        TextView listItemTest;
+        // TextView listItemTest;
+        ImageView listItemImageView;
 
         public ListItemViewHolder(View itemView) {
             super(itemView);
 
-            listItemTest = (TextView) itemView.findViewById(R.id.tv_item_test);
+            // listItemTest = (TextView) itemView.findViewById(R.id.tv_item_test);
+            listItemImageView = itemView.findViewById(R.id.iv_item_poster);
 
         }
 
