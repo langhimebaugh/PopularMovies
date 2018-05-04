@@ -1,7 +1,10 @@
 package com.himebaugh.popularmovies;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.BundleCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,7 +21,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.ListIterator;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
 
     private final static String TAG = MainActivity.class.getName();
 
@@ -46,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setHasFixedSize(true);
 
         // Initialize the adapter and attach it to the RecyclerView
-        mAdapter = new MovieAdapter(this);
+        mAdapter = new MovieAdapter(this, this);
         mRecyclerView.setAdapter(mAdapter);
 
 
@@ -54,6 +57,27 @@ public class MainActivity extends AppCompatActivity {
         URL queryUrl = MovieUtils.buildUrl(MovieUtils.TOPRATED_MOVIES, "2");
         new MovieQueryTask().execute(queryUrl);
 
+
+    }
+
+    @Override
+    public void onClick(Movie movie) {
+
+        Context context = this;
+
+        Log.i(TAG, "onClick: " + movie.getTitle());
+
+        // Launch the DetailActivity using an explicit Intent
+        Class destinationActivity = DetailActivity.class;
+        Intent intent = new Intent(context, destinationActivity);
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("movie", movie);
+        intent.putExtra("bundle", bundle);
+
+        // seemed simpler but this won't work...
+        // intent.putParcelableArrayListExtra("movie", movie);
+
+        startActivity(intent);
 
     }
 

@@ -29,20 +29,30 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
     private List<Movie> mMovieList;
     private Context mContext;
 
+    // An on-click handler to make it easy for an Activity to interface with the RecyclerView
+    private final MovieAdapterOnClickHandler mClickHandler;
+
+    // The interface that receives onClick messages
+    public interface MovieAdapterOnClickHandler {
+        void onClick(Movie movie);
+    }
+
     /**
      * Constructor for the MovieAdapter that initializes the Context.
      *
      * @param context the current Context
+     * @param clickHandler The on-click handler for this adapter. This single handler is called when an item is clicked.
      */
-    public MovieAdapter(Context context) {
+    public MovieAdapter(Context context, MovieAdapterOnClickHandler clickHandler) {
         mContext = context;
+        mClickHandler = clickHandler;
     }
 
 
     /**
-     * When data changes and a re-query occurs, this function swaps the old Cursor
-     * with a newly updated Cursor (Cursor c) that is passed in.
-     */
+     * Using this Method designed for Cursors to pass in List of Movies
+     *
+     * */
     public List<Movie> loadMovies(List<Movie> movieList) {
         // check if this cursor is the same as the previous cursor (mCursor)
         if (mMovieList == movieList) {
@@ -101,7 +111,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
     }
 
 
-    public class ListItemViewHolder extends RecyclerView.ViewHolder {
+    public class ListItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         // TextView listItemTest;
         ImageView listItemImageView;
@@ -112,8 +122,19 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
             // listItemTest = (TextView) itemView.findViewById(R.id.tv_item_test);
             listItemImageView = itemView.findViewById(R.id.iv_item_poster);
 
+            itemView.setOnClickListener(this);
+
+
         }
 
+        @Override
+        public void onClick(View v) {
+            int adapterPosition = getAdapterPosition();
+
+            Movie movie = mMovieList.get(adapterPosition);
+
+            mClickHandler.onClick(movie);
+        }
     }
 
     // https://docs.google.com/document/d/1ZlN1fUsCSKuInLECcJkslIqvpKlP7jWL2TP9m6UiA6I/pub?embedded=true
