@@ -4,12 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.BundleCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.support.v4.view.MenuItemCompat;
 
 import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.utils.MovieUtils;
@@ -19,14 +20,15 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.ListIterator;
 
 public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
 
     private final static String TAG = MainActivity.class.getName();
 
-    RecyclerView mRecyclerView;
+    private RecyclerView mRecyclerView;
     private MovieAdapter mAdapter;
+    //private int mMovieCount = 0;
+    private Boolean moviesHaveBeenLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,10 +54,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mAdapter = new MovieAdapter(this, this);
         mRecyclerView.setAdapter(mAdapter);
 
+        // RELOADS ON ORIENTATION CHANGE & COMING BACK FROM DETAIL ACTIVITY
+        // FIX IN PART-2 OF PROJECT
+        // FRAGMENTS MAY HELP
 
-        // URL queryUrl = MovieUtils.buildUrl(MovieUtils.POPULAR_MOVIES, "1");
-        URL queryUrl = MovieUtils.buildUrl(MovieUtils.TOPRATED_MOVIES, "2");
-        new MovieQueryTask().execute(queryUrl);
+        Log.i(TAG, "onCreate - moviesHaveBeenLoaded: " + moviesHaveBeenLoaded);
+
+
+        if (!moviesHaveBeenLoaded) {
+            loadMovies(MovieUtils.TOPRATED_MOVIES, "1");
+        }
 
 
     }
@@ -79,6 +87,22 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         startActivity(intent);
 
+    }
+
+    private void loadMovies(String movieDatabaseUrl, String page) {
+
+        // In a background thread, app queries the /movie/popular or /movie/top_rated API for the sort criteria specified in the settings menu.
+
+        // Change subtitle as necessary
+        if (movieDatabaseUrl == MovieUtils.POPULAR_MOVIES) {
+            getSupportActionBar().setSubtitle("Most Popular");
+        } else if (movieDatabaseUrl == MovieUtils.TOPRATED_MOVIES) {
+            getSupportActionBar().setSubtitle("Highest Rated");
+        }
+
+        URL queryUrl = MovieUtils.buildUrl(movieDatabaseUrl, page);
+
+        new MovieQueryTask().execute(queryUrl);
     }
 
     public class MovieQueryTask extends AsyncTask<URL, Void, List<Movie>> {
@@ -123,8 +147,45 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
             mAdapter.loadMovies(movieList);
             mAdapter.notifyDataSetChanged();
+
+            if (movieList.size() > 0) {
+                moviesHaveBeenLoaded = true;
+            }
+
+            Log.i(TAG, "moviesHaveBeenLoaded: " + moviesHaveBeenLoaded);
+
+
         }
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here.
+        int id = item.getItemId();
+
+        // UI contains a settings menu to toggle the sort order of the movies by: most popular, highest rated.
+        // When a user changes the sort criteria (“most popular and highest rated”) the main view gets updated
+        // by calling loadMovies below.
+
+        switch (id) {
+            case R.id.action_sort_popular:
+                loadMovies(MovieUtils.POPULAR_MOVIES, "1");
+                return true;
+            case R.id.action_sort_top_rated:
+                loadMovies(MovieUtils.TOPRATED_MOVIES, "1");
+                return true;
+            default:
+                // return false;
+                return super.onOptionsItemSelected(item);
+        }
 
     }
 
