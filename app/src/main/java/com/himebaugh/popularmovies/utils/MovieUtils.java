@@ -31,12 +31,12 @@ public class MovieUtils {
 
     public final static String POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
     public final static String TOPRATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
-    final static String PARAM_APIKEY = "api_key";
-    final static String apiKey = "ad7c6dd44b65b088cd2adee6760754bd";
-    final static String PARAM_PAGE = "page";
-    final static String page = "1";
-    final static String PARAM_LANGUAGE = "language";
-    final static String language = "en-US";
+    private final static String PARAM_APIKEY = "api_key";
+    private final static String apiKey = "ad7c6dd44b65b088cd2adee6760754bd";
+    private final static String PARAM_PAGE = "page";
+    private final static String page = "1";
+    private final static String PARAM_LANGUAGE = "language";
+    private final static String language = "en-US";
 
     /**
      * Builds the URL used to query GitHub.
@@ -132,9 +132,7 @@ public class MovieUtils {
 
         // Now Gson converts the json to a list of movies object based on the Movie class
         // Movie class member variable names needed to be named with under_scores not camelCase to work.
-        List<Movie> movieList = new Gson().fromJson(movieListJsonResults, listType);
-
-        return movieList;
+        return new Gson().fromJson(movieListJsonResults, listType);
     }
 
     public static Result parseResultsJson(String resultJsonStr) throws JSONException {
@@ -149,9 +147,7 @@ public class MovieUtils {
             resultMovies.add( resultMoviesArray.getString(i)      );
         }
 
-        Result result = new Result(resultMovies);
-
-        return result;
+        return new Result(resultMovies);
     }
 
 }

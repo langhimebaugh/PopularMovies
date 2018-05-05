@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.himebaugh.popularmovies.model.Movie;
 import com.squareup.picasso.Picasso;
@@ -82,9 +81,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
 
         View view = LayoutInflater.from(mContext).inflate(R.layout.list_item, viewGroup, false);
 
-        ListItemViewHolder viewHolder = new ListItemViewHolder(view);
+        return new ListItemViewHolder(view);
 
-        return viewHolder;
     }
 
 
@@ -116,7 +114,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
         // TextView listItemTest;
         ImageView listItemImageView;
 
-        public ListItemViewHolder(View itemView) {
+        private ListItemViewHolder(View itemView) {
             super(itemView);
 
             // listItemTest = (TextView) itemView.findViewById(R.id.tv_item_test);

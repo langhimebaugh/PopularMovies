@@ -3,4 +3,8 @@
     <string name="action_settings">Settings</string>
     <string name="action_sort_popular">Most Popular</string>
     <string name="action_sort_top_rated">Highest Rated</string>
+
+    <string name="movie_paster_image">Movie Poster Image</string>
+    <string name="label_release_date">Release Date: </string>
+    <string name="label_user_rating">User Rating: </string>
 </resources>

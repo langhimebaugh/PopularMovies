@@ -164,7 +164,7 @@ public class Movie implements Parcelable {
         overview = in.readString();
         release_date = in.readString();
         if (in.readByte() == 0x01) {
-            genre_ids = new ArrayList<Integer>();
+            genre_ids = new ArrayList<>();
             in.readList(genre_ids, Integer.class.getClassLoader());
         } else {
             genre_ids = null;

@@ -10,7 +10,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.support.v4.view.MenuItemCompat;
 
 import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.utils.MovieUtils;
@@ -35,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mRecyclerView = findViewById(R.id.recyclerView);
 
 
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
@@ -94,9 +93,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         // In a background thread, app queries the /movie/popular or /movie/top_rated API for the sort criteria specified in the settings menu.
 
         // Change subtitle as necessary
-        if (movieDatabaseUrl == MovieUtils.POPULAR_MOVIES) {
+        if (movieDatabaseUrl.equals(MovieUtils.POPULAR_MOVIES)) {
             getSupportActionBar().setSubtitle("Most Popular");
-        } else if (movieDatabaseUrl == MovieUtils.TOPRATED_MOVIES) {
+        } else if (movieDatabaseUrl.equals(MovieUtils.TOPRATED_MOVIES)) {
             getSupportActionBar().setSubtitle("Highest Rated");
         }
 
