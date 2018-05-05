@@ -7,4 +7,6 @@
     <string name="movie_paster_image">Movie Poster Image</string>
     <string name="label_release_date">Release Date: </string>
     <string name="label_user_rating">User Rating: </string>
+
+    <string name="msg_internet_connection">Check Internet Connection</string>
 </resources>

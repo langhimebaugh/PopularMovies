@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.utils.MovieUtils;
@@ -144,15 +145,19 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 //                Log.i(TAG, "listIterator: " + movie.getTitle() + " " + movie.getPosterPath());
 //            }
 
-            mAdapter.loadMovies(movieList);
-            mAdapter.notifyDataSetChanged();
+            // TO PREVENT ERROR WHEN NO INTERNET...
+            if (movieList == null) {
+                Toast.makeText(getApplicationContext(), R.string.msg_internet_connection, Toast.LENGTH_LONG).show();
+            } else {
+                mAdapter.loadMovies(movieList);
+                mAdapter.notifyDataSetChanged();
 
-            if (movieList.size() > 0) {
-                moviesHaveBeenLoaded = true;
+                if (movieList.size() > 0) {
+                    moviesHaveBeenLoaded = true;
+                }
+
+                Log.i(TAG, "moviesHaveBeenLoaded: " + moviesHaveBeenLoaded);
             }
-
-            Log.i(TAG, "moviesHaveBeenLoaded: " + moviesHaveBeenLoaded);
-
 
         }
 
