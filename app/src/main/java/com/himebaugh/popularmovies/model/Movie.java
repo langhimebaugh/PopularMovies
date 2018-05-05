@@ -155,6 +155,7 @@ public class Movie implements Parcelable {
     }
 
 
+    // CODE BELOW GENERATED AT http://www.parcelabler.com/
 
 
     protected Movie(Parcel in) {
