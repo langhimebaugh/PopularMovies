@@ -32,7 +32,7 @@ public class MovieUtils {
     public final static String POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
     public final static String TOPRATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
     private final static String PARAM_APIKEY = "api_key";
-    private final static String apiKey = "ad7c6dd44b65b088cd2adee6760754bd";
+    private final static String apiKey = "Your-Key-Here";
     private final static String PARAM_PAGE = "page";
     private final static String page = "1";
     private final static String PARAM_LANGUAGE = "language";
