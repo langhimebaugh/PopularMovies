@@ -8,3 +8,5 @@
 /build
 /captures
 .externalNativeBuild
+/app/src/main/res/raw/api_key
+/app/src/main/res/raw/api_key.txt
