@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             getSupportActionBar().setSubtitle("Highest Rated");
         }
 
-        URL queryUrl = MovieUtils.buildUrl(movieDatabaseUrl, page);
+        URL queryUrl = MovieUtils.buildUrl(this, movieDatabaseUrl, page);
 
         new MovieQueryTask().execute(queryUrl);
     }
