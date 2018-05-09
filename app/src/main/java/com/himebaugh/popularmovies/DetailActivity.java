@@ -15,7 +15,19 @@ public class DetailActivity extends AppCompatActivity {
 
     private static final String TAG = DetailActivity.class.getName();
     private static final String BASE_URL = "http://image.tmdb.org/t/p/";
-    private static final String SIZE = "w500";
+    private static final String SIZE_SMALL = "w185"; //w500
+    private static final String SIZE_LARGE = "w500";  //w780
+
+    // Then you will need a ‘size’, which will be one of the following: "w92",
+    // "w154", "w185", "w342", "w500", "w780", or "original". For most phones we
+    // recommend using “w185”.
+
+    // poster_path
+    // http://image.tmdb.org/t/p/w500/jjPJ4s3DWZZvI4vw8Xfi4Vqa1Q8.jpg
+
+    // backdrop_path
+    // http://image.tmdb.org/t/p/w500/9ywA15OAiwjSTvg3cBs9B7kOCBF.jpg
+
 
     private Movie movie;
 
@@ -51,8 +63,11 @@ public class DetailActivity extends AppCompatActivity {
             mDetailBinding.voteAverageTv.setText(String.valueOf(movie.getVoteAverage()));
             mDetailBinding.tvPlotSynopsis.setText(movie.getOverview());
 
-            String imageURL = BASE_URL + SIZE + movie.getPosterPath();
-            Picasso.get().load(imageURL).into(mDetailBinding.moviePosterIv);
+            String imageBackdropURL = BASE_URL + SIZE_LARGE + movie.getBackdropPath();
+            Picasso.get().load(imageBackdropURL).into(mDetailBinding.movieBackdropIv);
+
+            String imagePosterURL = BASE_URL + SIZE_SMALL + movie.getPosterPath();
+            Picasso.get().load(imagePosterURL).into(mDetailBinding.moviePosterIv);
         }
 
     }

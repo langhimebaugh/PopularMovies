@@ -36,6 +36,8 @@ public class MovieUtils {
 
     public final static String POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
     public final static String TOPRATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
+    public final static String VIDEOS_ENDPOINT = "videos";
+    public final static String REVIEWS_ENDPOINT = "reviews";
     private final static String PARAM_APIKEY = "api_key";
     private final static String PARAM_PAGE = "page";
     private final static String page = "1";
@@ -43,11 +45,56 @@ public class MovieUtils {
     private final static String language = "en-US";
 
 
+    // http://api.themoviedb.org/3/movie/popular?api_key=ad7c6dd44b65b088cd2adee6760754bd
+
+    // To fetch trailers you will want to make a request to the videos endpoint
+    // http://api.themoviedb.org/3/movie/{id}/videos?api_key=ad7c6dd44b65b088cd2adee6760754bd
+
+    // To fetch reviews you will want to make a request to the reviews endpoint
+    // http://api.themoviedb.org/3/movie/{id}/reviews?api_key=ad7c6dd44b65b088cd2adee6760754bd
+
+    // You should use an Intent to open a youtube link in either the native app or a web browser of choice.
+
     /**
      * Builds the URL used to query GitHub.
      *
-     * @param movieDatabaseUrl The keyword that will be queried for.
+     * @param movieID The movie that the detail will be queried for.
      * @return The URL to use to query the GitHub.
+     */
+    public static URL buildEndpointUrl(Context context, String movieID, String endPoint) {
+
+        String baseUrl = "https://api.themoviedb.org/3/movie/";
+
+        String movieDatabaseUrl = baseUrl + movieID + endPoint;
+
+
+        // Reading API KEY from text file on gitignore list
+        String apiKey = readRawTextFile(context, R.raw.api_key);
+        // String apiKey = "Your-Key-Here";
+
+        Log.i(TAG, "buildUrl: apiKey=" + apiKey);
+
+        Uri builtUri = Uri.parse(movieDatabaseUrl).buildUpon()
+                .appendQueryParameter(PARAM_PAGE, page)
+                .appendQueryParameter(PARAM_LANGUAGE, language)
+                .appendQueryParameter(PARAM_APIKEY, apiKey)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
+    }
+
+    /**
+     * Builds the URL used to query Videos Endpoint.
+     *
+     * @param movieDatabaseUrl The keyword that will be queried for.
+     * @return The URL to use to query the Videos Endpoint.
      */
     public static URL buildUrl(Context context, String movieDatabaseUrl, String page) {
 
@@ -72,6 +119,7 @@ public class MovieUtils {
 
         return url;
     }
+
 
     /**
      * This method returns the entire result from the HTTP response.
@@ -130,7 +178,7 @@ public class MovieUtils {
 
     public static List<Movie> getMovieList(URL url) throws IOException, JSONException {
 
-         String moviesJsonResults = getMoviesJsonFromHttpUrl(url);
+        String moviesJsonResults = getMoviesJsonFromHttpUrl(url);
 
         // Uses JSONObject & JSONArray to get strictly the Movie List Result Object
         // could not figure out how to use Gson until removal of
@@ -140,7 +188,8 @@ public class MovieUtils {
 
         String movieListJsonResults = result.getResults().toString();
 
-        Type listType = new TypeToken<List<Movie>>() {}.getType();
+        Type listType = new TypeToken<List<Movie>>() {
+        }.getType();
 
         // Now Gson converts the json to a list of movies object based on the Movie class
         // Movie class member variable names needed to be named with under_scores not camelCase to work.
@@ -156,7 +205,7 @@ public class MovieUtils {
         List<String> resultMovies = new ArrayList<>();
         JSONArray resultMoviesArray = resultJsonObject.getJSONArray(RESULT_RESULTS);
         for (int i = 0; i < resultMoviesArray.length(); i++) {
-            resultMovies.add( resultMoviesArray.getString(i)      );
+            resultMovies.add(resultMoviesArray.getString(i));
         }
 
         return new Result(resultMovies);
