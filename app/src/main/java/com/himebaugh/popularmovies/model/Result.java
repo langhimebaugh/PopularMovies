@@ -4,6 +4,14 @@ import java.util.List;
 
 public class Result {
 
+    // *************************************************************
+    // NOT USING THIS ANYMORE
+    // Was using with MovieUtils.parseMovieResultsJson
+    // NOT necessary as now getting directly to the "results" with...
+    // Map<String, Object> map = gson.fromJson(moviesJsonResults, new TypeToken<Map<String, Object>>(){}.getType());
+    // map.get("results")
+    // *************************************************************
+
     private int page;
     private List<String> results = null;
     private int totalResults;

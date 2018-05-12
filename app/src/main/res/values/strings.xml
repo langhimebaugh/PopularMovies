@@ -8,6 +8,8 @@
     <string name="movie_backdrop_image">Movie Backdrop Image</string>
     <string name="label_release_date">Release Date: </string>
     <string name="label_user_rating">User Rating: </string>
+    <string name="label_trailers">Trailers: </string>
+    <string name="label_reviews">Reviews: </string>
 
     <string name="msg_internet_connection">Check Internet Connection</string>
 </resources>

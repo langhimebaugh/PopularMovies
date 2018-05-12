@@ -12,10 +12,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.himebaugh.popularmovies.adapter.MovieAdapter;
 import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.utils.MovieUtils;
-
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -122,8 +121,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             try {
                 movieList = MovieUtils.getMovieList(url);
             } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
                 e.printStackTrace();
             }
 

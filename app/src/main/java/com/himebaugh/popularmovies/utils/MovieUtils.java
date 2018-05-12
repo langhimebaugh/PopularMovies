@@ -9,6 +9,8 @@ import com.google.gson.reflect.TypeToken;
 import com.himebaugh.popularmovies.R;
 import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.model.Result;
+import com.himebaugh.popularmovies.model.UserReview;
+import com.himebaugh.popularmovies.model.VideoTrailer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import okhttp3.OkHttpClient;
@@ -36,8 +39,8 @@ public class MovieUtils {
 
     public final static String POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
     public final static String TOPRATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
-    public final static String VIDEOS_ENDPOINT = "videos";
-    public final static String REVIEWS_ENDPOINT = "reviews";
+    public final static String VIDEOS_ENDPOINT = "/videos";
+    public final static String REVIEWS_ENDPOINT = "/reviews";
     private final static String PARAM_APIKEY = "api_key";
     private final static String PARAM_PAGE = "page";
     private final static String page = "1";
@@ -63,6 +66,8 @@ public class MovieUtils {
      */
     public static URL buildEndpointUrl(Context context, String movieID, String endPoint) {
 
+        // http://api.themoviedb.org/3/movie/278/videos?api_key=ad7c6dd44b65b088cd2adee6760754bd
+
         String baseUrl = "https://api.themoviedb.org/3/movie/";
 
         String movieDatabaseUrl = baseUrl + movieID + endPoint;
@@ -75,8 +80,6 @@ public class MovieUtils {
         Log.i(TAG, "buildUrl: apiKey=" + apiKey);
 
         Uri builtUri = Uri.parse(movieDatabaseUrl).buildUpon()
-                .appendQueryParameter(PARAM_PAGE, page)
-                .appendQueryParameter(PARAM_LANGUAGE, language)
                 .appendQueryParameter(PARAM_APIKEY, apiKey)
                 .build();
 
@@ -128,7 +131,7 @@ public class MovieUtils {
      * @return The contents of the HTTP response.
      * @throws IOException Related to network and stream reading
      */
-    public static String getMoviesJsonFromHttpUrl(URL url) throws IOException {
+    public static String getJsonFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
             InputStream in = urlConnection.getInputStream();
@@ -176,27 +179,76 @@ public class MovieUtils {
         return moviesJsonString;
     }
 
-    public static List<Movie> getMovieList(URL url) throws IOException, JSONException {
+    public static List<Movie> getMovieList(URL url) throws IOException {
 
-        String moviesJsonResults = getMoviesJsonFromHttpUrl(url);
+        String moviesJsonResults = getJsonFromHttpUrl(url);
+
+        Gson gson = new Gson();
 
         // Uses JSONObject & JSONArray to get strictly the Movie List Result Object
         // could not figure out how to use Gson until removal of
         // "page", "total_results" & "total_pages"
         // Returns everything within "results": [
-        Result result = parseResultsJson(moviesJsonResults);
 
-        String movieListJsonResults = result.getResults().toString();
+//        Result result = parseMovieResultsJson(moviesJsonResults);
+//        String movieListJsonResults = result.getResults().toString();
+
+        // This illiminates the need for the Result.class and parseMovieResultsJson() below!!!
+        Map<String, Object> map = gson.fromJson(moviesJsonResults, new TypeToken<Map<String, Object>>(){}.getType());
+        String movieListJsonResults = gson.toJson(map.get("results"));
 
         Type listType = new TypeToken<List<Movie>>() {
         }.getType();
 
         // Now Gson converts the json to a list of movies object based on the Movie class
         // Movie class member variable names needed to be named with under_scores not camelCase to work.
-        return new Gson().fromJson(movieListJsonResults, listType);
+        return gson.fromJson(movieListJsonResults, listType);
     }
 
-    public static Result parseResultsJson(String resultJsonStr) throws JSONException {
+    public static List<VideoTrailer> getVideoTrailerList(URL url) throws IOException {
+
+        String videoTrailersJsonResults = getJsonFromHttpUrl(url);
+
+        Gson gson = new Gson();
+
+        // Uses JSONObject & JSONArray to get strictly the Movie List Result Object
+        // could not figure out how to use Gson until removal of
+        // "page", "total_results" & "total_pages"
+        // Returns everything within "results": [
+
+//        Result result = parseMovieResultsJson(moviesJsonResults);
+//        String movieListJsonResults = result.getResults().toString();
+
+        // This eliminates the need for the Result.class and parseMovieResultsJson() below!!!
+        Map<String, Object> map = gson.fromJson(videoTrailersJsonResults, new TypeToken<Map<String, Object>>(){}.getType());
+        String movieListJsonResults = gson.toJson(map.get("results"));
+
+        Type listType = new TypeToken<List<VideoTrailer>>() {
+        }.getType();
+
+        // Now Gson converts the json to a list of movies object based on the Movie class
+        // Movie class member variable names needed to be named with under_scores not camelCase to work.
+        return gson.fromJson(movieListJsonResults, listType);
+    }
+
+    public static List<UserReview> getUserReviewList(URL url) throws IOException {
+
+        String userReviewsJsonResults = getJsonFromHttpUrl(url);
+
+        Gson gson = new Gson();
+
+        Map<String, Object> map = gson.fromJson(userReviewsJsonResults, new TypeToken<Map<String, Object>>(){}.getType());
+        String movieListJsonResults = gson.toJson(map.get("results"));
+
+        Type listType = new TypeToken<List<UserReview>>() {
+        }.getType();
+
+        // Now Gson converts the json to a list of movies object based on the Movie class
+        // Movie class member variable names needed to be named with under_scores not camelCase to work.
+        return gson.fromJson(movieListJsonResults, listType);
+    }
+
+    public static Result parseMovieResultsJson(String resultJsonStr) throws JSONException {
 
         final String RESULT_RESULTS = "results";
 

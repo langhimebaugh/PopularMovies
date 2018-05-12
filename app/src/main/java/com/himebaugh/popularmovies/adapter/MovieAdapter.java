@@ -1,4 +1,4 @@
-package com.himebaugh.popularmovies;
+package com.himebaugh.popularmovies.adapter;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.himebaugh.popularmovies.R;
 import com.himebaugh.popularmovies.model.Movie;
 import com.squareup.picasso.Picasso;
 
@@ -79,7 +80,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
 //
 //        View view = inflater.inflate(layoutIdForListItem, viewGroup, shouldAttachToParentImmediately);
 
-        View view = LayoutInflater.from(mContext).inflate(R.layout.list_item, viewGroup, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.movie_list_item, viewGroup, false);
 
         return new ListItemViewHolder(view);
 
