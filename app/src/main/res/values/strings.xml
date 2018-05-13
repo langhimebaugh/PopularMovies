@@ -6,6 +6,7 @@
 
     <string name="movie_poster_image">Movie Poster Image</string>
     <string name="movie_backdrop_image">Movie Backdrop Image</string>
+    <string name="play_button_image">Play Button Image</string>
     <string name="label_release_date">Release Date: </string>
     <string name="label_user_rating">User Rating: </string>
     <string name="label_trailers">Trailers: </string>

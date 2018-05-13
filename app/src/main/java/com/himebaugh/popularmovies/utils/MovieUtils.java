@@ -48,13 +48,13 @@ public class MovieUtils {
     private final static String language = "en-US";
 
 
-    // http://api.themoviedb.org/3/movie/popular?api_key=ad7c6dd44b65b088cd2adee6760754bd
+    // http://api.themoviedb.org/3/movie/popular?api_key=<YOUR-API-KEY>
 
     // To fetch trailers you will want to make a request to the videos endpoint
-    // http://api.themoviedb.org/3/movie/{id}/videos?api_key=ad7c6dd44b65b088cd2adee6760754bd
+    // http://api.themoviedb.org/3/movie/{id}/videos?api_key=<YOUR-API-KEY>
 
     // To fetch reviews you will want to make a request to the reviews endpoint
-    // http://api.themoviedb.org/3/movie/{id}/reviews?api_key=ad7c6dd44b65b088cd2adee6760754bd
+    // http://api.themoviedb.org/3/movie/{id}/reviews?api_key=<YOUR-API-KEY>
 
     // You should use an Intent to open a youtube link in either the native app or a web browser of choice.
 
@@ -66,7 +66,7 @@ public class MovieUtils {
      */
     public static URL buildEndpointUrl(Context context, String movieID, String endPoint) {
 
-        // http://api.themoviedb.org/3/movie/278/videos?api_key=ad7c6dd44b65b088cd2adee6760754bd
+        // http://api.themoviedb.org/3/movie/278/videos?api_key=<YOUR-API-KEY>
 
         String baseUrl = "https://api.themoviedb.org/3/movie/";
 

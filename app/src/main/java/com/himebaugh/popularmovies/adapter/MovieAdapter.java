@@ -80,7 +80,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
 //
 //        View view = inflater.inflate(layoutIdForListItem, viewGroup, shouldAttachToParentImmediately);
 
-        View view = LayoutInflater.from(mContext).inflate(R.layout.movie_list_item, viewGroup, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.list_item_movie, viewGroup, false);
 
         return new ListItemViewHolder(view);
 

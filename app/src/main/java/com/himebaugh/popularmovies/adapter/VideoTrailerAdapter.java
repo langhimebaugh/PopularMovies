@@ -6,13 +6,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.himebaugh.popularmovies.R;
-import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.model.VideoTrailer;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -59,7 +56,7 @@ public class VideoTrailerAdapter extends RecyclerView.Adapter<VideoTrailerAdapte
     @Override
     public VideoTrailerAdapter.ListItemViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
 
-        View view = LayoutInflater.from(mContext).inflate(R.layout.video_list_item, viewGroup, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.list_item_video, viewGroup, false);
 
         return new ListItemViewHolder(view);
     }
