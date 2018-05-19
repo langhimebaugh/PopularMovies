@@ -35,6 +35,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.ListIterator;
 
+import static com.himebaugh.popularmovies.utils.NetworkUtil.isNetworkAvailable;
+
 public class DetailActivity extends AppCompatActivity implements VideoTrailerAdapter.VideoTrailerAdapterOnClickHandler {
 
     private static final String TAG = DetailActivity.class.getName();
@@ -42,7 +44,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     private static final String SIZE_SMALL = "w185"; //w500
     private static final String SIZE_LARGE = "w500";  //w780
 
-    // TODO: REVIEWS, CONTENT PROVIDER <-> SQLITE, FAVORITES, CHANGE GRID ON ROTATION
+    // TODO: FAVORITES,
     // Then you will need a ‘size’, which will be one of the following: "w92",
     // "w154", "w185", "w342", "w500", "w780", or "original". For most phones we
     // recommend using “w185”.
@@ -66,10 +68,14 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     // Create Data Binding instance called mDetailBinding of type ActivityMainBinding
     private ActivityDetailBinding mDetailBinding;
 
+    private Context mContext;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+
+        mContext = this;
 
         // Implement Up Navigation - displays the back arrow in front of App icon in the Action Bar
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -98,8 +104,9 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
             String imageBackdropURL = BASE_URL + SIZE_LARGE + mMovie.getBackdropPath();
             Picasso.get().load(imageBackdropURL).into(mDetailBinding.movieBackdropIv);
 
+            // TODO: placeholder() and error() accept a drawable resource ID. CREATE a default image.
             String imagePosterURL = BASE_URL + SIZE_SMALL + mMovie.getPosterPath();
-            Picasso.get().load(imagePosterURL).into(mDetailBinding.moviePosterIv);
+            Picasso.get().load(imagePosterURL).placeholder(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_foreground).into(mDetailBinding.moviePosterIv);
 
             if (!videoTrailersHaveBeenLoaded) {
                 loadVideoTrailers();
@@ -145,27 +152,33 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         mVideoAdapter = new VideoTrailerAdapter(this, this);
         mVideoRecyclerView.setAdapter(mVideoAdapter);
 
-        // To fetch trailers you will want to make a request to the videos endpoint
-        // http://api.themoviedb.org/3/movie/{id}/videos?api_key=<YOUR-API-KEY>
 
-        URL queryUrl = MovieUtils.buildEndpointUrl(this, String.valueOf(mMovie.getId()), MovieUtils.VIDEOS_ENDPOINT);
+        Log.i(TAG, "loadVideoTrailers: movieID=" + mMovie.getId());
 
-        new LoadVideoTrailersTask().execute(queryUrl);
+        new LoadVideoTrailersTask().execute(mMovie.getId());
 
     }
 
-    public class LoadVideoTrailersTask extends AsyncTask<URL, Void, List<VideoTrailer>> {
+    public class LoadVideoTrailersTask extends AsyncTask<Integer, Void, List<VideoTrailer>> {
 
         @Override
-        protected List<VideoTrailer> doInBackground(URL... params) {
-            URL url = params[0];
+        protected List<VideoTrailer> doInBackground(Integer... params) {
+            int movieId = params[0];
+
+            Log.i(TAG, "LoadVideoTrailersTask doInBackground: movieID=" + movieId);
 
             List<VideoTrailer> videoTrailerList = null;
 
-            try {
-                videoTrailerList = MovieUtils.getVideoTrailerList(url);
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (isNetworkAvailable(mContext)) {
+                Log.i(TAG, "Network is Available");
+                try {
+                    videoTrailerList = MovieUtils.getVideoTrailerList(mContext, movieId);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Log.i(TAG, "Network is NOT Available");
+                videoTrailerList = MovieUtils.getVideoTrailerListFromCursor(mContext, movieId);
             }
 
             return videoTrailerList;
@@ -173,6 +186,9 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
         @Override
         protected void onPostExecute(List<VideoTrailer> videoTrailerList) {
+
+            Log.i(TAG, "onPostExecute: ");
+            Log.i(TAG, "videoTrailerList.size()" + videoTrailerList.size());
 
             // TO PREVENT ERROR WHEN NO INTERNET...
             if (videoTrailerList == null) {
@@ -227,7 +243,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
         URL queryUrl = MovieUtils.buildEndpointUrl(this, String.valueOf(mMovie.getId()), MovieUtils.REVIEWS_ENDPOINT);
 
-        new LoadUserReviewsTask().execute(queryUrl);
+        // new LoadUserReviewsTask().execute(queryUrl);
 
     }
 
@@ -239,10 +255,16 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
             List<UserReview> userReviewList = null;
 
-            try {
-                userReviewList = MovieUtils.getUserReviewList(url);
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (isNetworkAvailable(mContext)) {
+                Log.i(TAG, "Network is Available");
+                try {
+                    userReviewList = MovieUtils.getUserReviewList(mContext, url);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Log.i(TAG, "Network is NOT Available");
+                // TODO: userReviewList = MovieUtils.getUserReviewListFromCursor(mContext, url);
             }
 
             return userReviewList;
