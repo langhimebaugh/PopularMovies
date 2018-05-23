@@ -145,6 +145,8 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
                 isFavorite = false;
             }
 
+            cursor.close();
+
         }
 
     }

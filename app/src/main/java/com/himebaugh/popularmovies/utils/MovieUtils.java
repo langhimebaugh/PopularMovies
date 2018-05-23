@@ -419,6 +419,8 @@ public class MovieUtils {
             returnMovieList.add(movie);
         }
 
+        cursor.close();
+
         return returnMovieList;
     }
 
@@ -578,6 +580,8 @@ public class MovieUtils {
             returnVideoTrailerList.add(videoTrailer);
         }
 
+        cursor.close();
+
         return returnVideoTrailerList;
     }
 
@@ -700,6 +704,8 @@ public class MovieUtils {
 
             returnUserReviewList.add(userReview);
         }
+
+        cursor.close();
 
         return returnUserReviewList;
     }
