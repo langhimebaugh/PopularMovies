@@ -2,8 +2,12 @@ package com.himebaugh.popularmovies;
 
 // Import statements for Data Binding
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -15,11 +19,18 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.himebaugh.popularmovies.data.MovieContract.MovieEntry;
+import com.himebaugh.popularmovies.data.MovieContract.UserReviewEntry;
+import com.himebaugh.popularmovies.data.MovieContract.VideoTrailerEntry;
 
 import com.himebaugh.popularmovies.adapter.MovieAdapter;
 import com.himebaugh.popularmovies.adapter.UserReviewAdapter;
 import com.himebaugh.popularmovies.adapter.VideoTrailerAdapter;
+import com.himebaugh.popularmovies.data.MovieContract;
 import com.himebaugh.popularmovies.databinding.ActivityDetailBinding;
 import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.model.UserReview;
@@ -44,7 +55,10 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     private static final String SIZE_SMALL = "w185"; //w500
     private static final String SIZE_LARGE = "w500";  //w780
 
-    // TODO: FAVORITES,
+    // COMPLETE: FAVORITES,
+    // COMPLETE: Extend the favorites ContentProvider to store the movie poster, synopsis, user rating, and release date, and display them even when offline.
+    // COMPLETE: Implement sharing functionality to allow the user to share the first trailer’s YouTube URL from the movie details screen.
+
     // Then you will need a ‘size’, which will be one of the following: "w92",
     // "w154", "w185", "w342", "w500", "w780", or "original". For most phones we
     // recommend using “w185”.
@@ -62,8 +76,14 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
     private Boolean videoTrailersHaveBeenLoaded = false;
     private Boolean userReviewsHaveBeenLoaded = false;
+    private Boolean isFavorite = false;
+    private Boolean videoTrailerIsAvailableToShare = false;
 
     private Movie mMovie;
+    private VideoTrailer mVideoTrailer;
+
+    private MenuItem favoriteSelected;
+    private MenuItem favoriteNotSelected;
 
     // Create Data Binding instance called mDetailBinding of type ActivityMainBinding
     private ActivityDetailBinding mDetailBinding;
@@ -94,7 +114,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
             getSupportActionBar().setTitle("Movie Details");
             getSupportActionBar().setSubtitle(mMovie.getTitle());
 
-
             // Bind movie data to the views
             mDetailBinding.titleTv.setText(mMovie.getTitle());
             mDetailBinding.releaseDateTv.setText(mMovie.getReleaseDate());
@@ -104,9 +123,9 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
             String imageBackdropURL = BASE_URL + SIZE_LARGE + mMovie.getBackdropPath();
             Picasso.get().load(imageBackdropURL).into(mDetailBinding.movieBackdropIv);
 
-            // TODO: placeholder() and error() accept a drawable resource ID. CREATE a default image.
+            // COMPLETE: placeholder() and error() accept a drawable resource ID. CREATE a default image.
             String imagePosterURL = BASE_URL + SIZE_SMALL + mMovie.getPosterPath();
-            Picasso.get().load(imagePosterURL).placeholder(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_foreground).into(mDetailBinding.moviePosterIv);
+            Picasso.get().load(imagePosterURL).placeholder(R.mipmap.ic_launcher).error(R.drawable.offline).into(mDetailBinding.moviePosterIv);
 
             if (!videoTrailersHaveBeenLoaded) {
                 loadVideoTrailers();
@@ -117,9 +136,37 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
             }
 
             Log.i(TAG, "onCreate: ID=" + mMovie.getId());
+
+
+            // =========================================================================
+            // Sets the current state of isFavorite according to value in database.
+
+            Uri uri = ContentUris.withAppendedId(MovieEntry.CONTENT_URI, mMovie.getId());
+            String[] projection = null;
+            String selection = null;
+            String[] selectionArgs = null;
+            String sortOrder = null;
+
+            // Set selection
+            selection = MovieEntry._ID + " = " + mMovie.getId();
+
+            Cursor cursor = getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
+
+            cursor.moveToNext();
+
+            if (cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FAVORITE)) == 1) {
+                isFavorite = true;
+            } else {
+                isFavorite = false;
+            }
+
+            // refreshes the action bar to redisplay the star
+            // supportInvalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+
         }
 
     }
+
 
     @Override
     public void onClick(VideoTrailer videoTrailer) {
@@ -139,9 +186,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
-        // May save position and reset upon orientation change???
-        // layoutManager.scrollToPosition(0);
 
         mVideoRecyclerView.setLayoutManager(layoutManager);
 
@@ -202,8 +246,20 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
                 final ListIterator<VideoTrailer> listIterator = videoTrailerList.listIterator();
 
+                videoTrailerIsAvailableToShare = false;
+
                 while (listIterator.hasNext()) {
                     VideoTrailer videoTrailer = listIterator.next();
+
+                    if (!videoTrailerIsAvailableToShare && videoTrailer.getType().contentEquals("Trailer")) {
+
+                        // Store the first VideoTrailer that "type" = "Trailer"
+                        // Then flag as shareable to use in shareMovie()
+                        mVideoTrailer = videoTrailer;
+
+                        videoTrailerIsAvailableToShare = true;
+                    }
+
 
                     Log.i(TAG, "listIterator: " + videoTrailer.getId() + " " + videoTrailer.getName() + " " + videoTrailer.getSite() + " " + videoTrailer.getType());
                 }
@@ -241,30 +297,34 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         // To fetch reviews you will want to make a request to the reviews endpoint
         // http://api.themoviedb.org/3/movie/{id}/reviews?api_key=<YOUR-API-KEY>
 
-        URL queryUrl = MovieUtils.buildEndpointUrl(this, String.valueOf(mMovie.getId()), MovieUtils.REVIEWS_ENDPOINT);
+        // URL queryUrl = MovieUtils.buildEndpointUrl(this, String.valueOf(mMovie.getId()), MovieUtils.REVIEWS_ENDPOINT);
 
         // new LoadUserReviewsTask().execute(queryUrl);
 
+        Log.i(TAG, "loadVideoTrailers: movieID=" + mMovie.getId());
+
+        new LoadUserReviewsTask().execute(mMovie.getId());
+
     }
 
-    public class LoadUserReviewsTask extends AsyncTask<URL, Void, List<UserReview>> {
+    public class LoadUserReviewsTask extends AsyncTask<Integer, Void, List<UserReview>> {
 
         @Override
-        protected List<UserReview> doInBackground(URL... params) {
-            URL url = params[0];
+        protected List<UserReview> doInBackground(Integer... params) {
+            int movieId = params[0];
 
             List<UserReview> userReviewList = null;
 
             if (isNetworkAvailable(mContext)) {
                 Log.i(TAG, "Network is Available");
                 try {
-                    userReviewList = MovieUtils.getUserReviewList(mContext, url);
+                    userReviewList = MovieUtils.getUserReviewList(mContext, movieId);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             } else {
                 Log.i(TAG, "Network is NOT Available");
-                // TODO: userReviewList = MovieUtils.getUserReviewListFromCursor(mContext, url);
+                userReviewList = MovieUtils.getUserReviewListFromCursor(mContext, movieId);
             }
 
             return userReviewList;
@@ -304,5 +364,101 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         }
 
     }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.detail, menu);
+
+        favoriteSelected = menu.findItem(R.id.action_favorite_selected);
+        favoriteNotSelected = menu.findItem(R.id.action_favorite_not_selected);
+
+        favoriteSelected.setVisible(isFavorite);
+        favoriteNotSelected.setVisible(!isFavorite);
+
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here.
+        int id = item.getItemId();
+
+        // UI contains a settings menu to SHARE a movie or toggle FAVORITE on/off.
+
+        Log.i(TAG, "onOptionsItemSelected: ");
+
+        switch (id) {
+            case R.id.action_favorite_selected:
+            case R.id.action_favorite_not_selected:
+                toggleFavorite(mMovie.getId());
+                return true;
+            case R.id.action_share:
+                shareMovie();
+                return true;
+            default:
+                // return false;
+                return super.onOptionsItemSelected(item);
+        }
+
+    }
+
+    private void shareMovie() {
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Check out " + mMovie.getTitle());
+
+        if (videoTrailerIsAvailableToShare) {
+            Uri videoUrl = Uri.parse("http://www.youtube.com/watch").buildUpon().appendQueryParameter("v", mVideoTrailer.getKey()).build();
+            shareIntent.putExtra(Intent.EXTRA_TEXT, videoUrl.toString() + "\n" + mMovie.getOverview() );
+        } else {
+            shareIntent.putExtra(Intent.EXTRA_TEXT, mMovie.getOverview() );
+        }
+
+        startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.action_share) ) );
+    }
+
+
+    // Toggles isFavorite value associated with the heart shaped favorite icon in the Action Bar.
+    // Updates database record with the Movie Id passed in.
+    private void toggleFavorite(int movieId) {
+
+        Log.i(TAG, "toggleFavorite: ");
+
+        // toggle condition
+        isFavorite = !isFavorite;
+
+        Uri uri = MovieEntry.CONTENT_URI;
+        Uri rowURI = ContentUris.withAppendedId(MovieEntry.CONTENT_URI, movieId);
+        String selection = null;
+        String[] selectionArgs = null;
+
+        // Create the updated row content, assigning values for each row.
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieEntry.COLUMN_FAVORITE, isFavorite);
+
+        // Set selection
+        selection = MovieEntry._ID + " = " + movieId;
+
+        int rowsUpdated = getContentResolver().update(rowURI, contentValues, selection, selectionArgs);
+
+        // getContentResolver().notify();
+        getContentResolver().notifyChange(MovieEntry.CONTENT_URI, null);
+
+        Log.i(TAG, "toggleFavorite: rowsUpdated=" + rowsUpdated);
+
+        if (rowsUpdated > 0) {
+
+            // update the action bar menu item by changing the button visibility for both icons
+            favoriteSelected.setVisible(isFavorite);
+            favoriteNotSelected.setVisible(!isFavorite);
+
+        }
+
+    }
+
 
 }

@@ -254,7 +254,7 @@ public class MovieUtils {
         //  2) MovieUtils.FILTER_TOPRATED
         //
         //      Build a URL using MovieUtils.TOPRATED_MOVIES
-        //      Attempt to get MovieList through internet via API through getJsonFromHttpUrl(url)
+        //      Attempt to get MovieList through internet via API through getJsonFromOkHttpClient(url)
         //      IF SUCCESSFUL, process & saveMovieListToCursor() [REMOVE OLD MOVIES & REFRESH WITH NEW ONES]
         //      IF NOT SUCCESSFUL assume the internet is down and get backup data from the MovieProvider using getMovieListFromCursor()
         //
@@ -480,13 +480,11 @@ public class MovieUtils {
             // ****************************************************************************************************************
             // This slows everything down and adds many more API calls to the MainActivity, but all will be saved for online use...
             // Call this in the loop as it will retrieve and insert into database
-
-
-            try {
-                getVideoTrailerList(context, movieList.get(i).getId());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                getVideoTrailerList(context, movieList.get(i).getId());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
         }
 
@@ -533,7 +531,7 @@ public class MovieUtils {
             Type listType = new TypeToken<List<VideoTrailer>>() {
             }.getType();
 
-            // Now Gson converts the json to a list of movies object based on the Movie class
+            // Now Gson converts the json to a list of video trailers object based on the VideoTrailer class
             returnVideoTrailerList = gson.fromJson(videoTrailerJsonResults, listType);
 
             // ***********************************************************
@@ -628,26 +626,118 @@ public class MovieUtils {
 
     // ==========UserReviewList=Start====================================================
 
-    public static List<UserReview> getUserReviewList(Context context, URL url) throws IOException {
+    public static List<UserReview> getUserReviewList(Context context, int movieId) throws IOException {
 
         Log.i(TAG, "getUserReviewList: ");
 
-        String userReviewsJsonResults = getJsonFromHttpUrl(url);
+        List<UserReview> returnUserReviewList;
 
-        Gson gson = new Gson();
+        URL queryUrl = MovieUtils.buildEndpointUrl(context, String.valueOf(movieId), MovieUtils.REVIEWS_ENDPOINT);
 
-        Map<String, Object> map = gson.fromJson(userReviewsJsonResults, new TypeToken<Map<String, Object>>() {
-        }.getType());
-        String movieListJsonResults = gson.toJson(map.get("results"));
+        String userReviewsJsonResults = getJsonFromHttpUrl(queryUrl);
 
-        Type listType = new TypeToken<List<UserReview>>() {
-        }.getType();
 
-        // Now Gson converts the json to a list of movies object based on the Movie class
-        // Movie class member variable names needed to be named with under_scores not camelCase to work.
-        return gson.fromJson(movieListJsonResults, listType);
+        if (userReviewsJsonResults == null) {
+
+            Log.i(TAG, "SOMETHING WENT WRONG....");
+
+            // ***********************************************************
+            // INTERNET IS UP, BUT API MAY BE DOWN, so get MovieList from database
+            // ***********************************************************
+            returnUserReviewList = getUserReviewListFromCursor(context, movieId);
+
+        } else {
+
+            Gson gson = new Gson();
+
+            Map<String, Object> map = gson.fromJson(userReviewsJsonResults, new TypeToken<Map<String, Object>>() {
+            }.getType());
+            String userReviewJsonResults = gson.toJson(map.get("results"));
+
+            Type listType = new TypeToken<List<UserReview>>() {
+            }.getType();
+
+            // Now Gson converts the json to a list of user review objects based on the UserReview class
+            returnUserReviewList = gson.fromJson(userReviewJsonResults, listType);
+
+            // ***********************************************************
+            // The latest UserReviewList results are saved to the database
+            // This worked but only save 1 movie at a time.  Now doing it above in saveMovieListToCursor()
+            // ***********************************************************
+            saveUserReviewListToCursor(context, returnUserReviewList, movieId);
+        }
+
+        return returnUserReviewList;
     }
 
+
+    public static List<UserReview> getUserReviewListFromCursor(Context context, int movieId) {
+
+        Log.i(TAG, "getUserReviewListFromCursor: ");
+
+        List<UserReview> returnUserReviewList = new ArrayList<>();
+
+        Uri uri = UserReviewEntry.CONTENT_URI;
+        String[] projection = null;
+        String selection = null;
+        String[] selectionArgs = null;
+        String sortOrder = null;
+
+        // Set selection
+        selection = UserReviewEntry.COLUMN_MOVIE_ID + " = " + movieId;
+
+        Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
+
+        Log.i(TAG, "getUserReviewListFromCursor: COUNT=" + cursor.getCount());
+
+        // iterate over cursor to load into List
+        while (cursor.moveToNext()) {
+
+            String id = cursor.getString(cursor.getColumnIndex(UserReviewEntry.COLUMN_USER_REVIEW_ID));
+            String author = cursor.getString(cursor.getColumnIndex(UserReviewEntry.COLUMN_AUTHOR));
+            String content = cursor.getString(cursor.getColumnIndex(UserReviewEntry.COLUMN_CONTENT));
+            String url = cursor.getString(cursor.getColumnIndex(UserReviewEntry.COLUMN_URL));
+
+            UserReview userReview = new UserReview(
+                    id,
+                    author,
+                    content,
+                    url
+            );
+
+            returnUserReviewList.add(userReview);
+        }
+
+        return returnUserReviewList;
+    }
+
+    private static void saveUserReviewListToCursor(Context context, List<UserReview> userReviewList, int movieId) {
+
+        Log.i(TAG, "saveUserReviewListToCursor: userReviewList.size()=" + userReviewList.size());
+
+        Uri uri = UserReviewEntry.CONTENT_URI;
+
+        ContentValues[] bulkUserReviewValues = new ContentValues[userReviewList.size()];
+
+        for (int i = 0; i < userReviewList.size(); i++) {
+
+            Log.i(TAG, "saveUserReviewListToCursor: i = " + i);
+
+            ContentValues userReviewValues = new ContentValues();
+
+            userReviewValues.put(UserReviewEntry.COLUMN_MOVIE_ID, movieId);
+            userReviewValues.put(UserReviewEntry.COLUMN_USER_REVIEW_ID, userReviewList.get(i).getId());
+            userReviewValues.put(UserReviewEntry.COLUMN_AUTHOR, userReviewList.get(i).getAuthor());
+            userReviewValues.put(UserReviewEntry.COLUMN_CONTENT, userReviewList.get(i).getContent());
+            userReviewValues.put(UserReviewEntry.COLUMN_URL, userReviewList.get(i).getUrl());
+
+            bulkUserReviewValues[i] = userReviewValues;
+        }
+
+        int recordsInserted = context.getContentResolver().bulkInsert(uri, bulkUserReviewValues);
+
+        Log.i(TAG, "saveUserReviewListToCursor: Records Inserted = " + recordsInserted);
+    }
 
 
 }

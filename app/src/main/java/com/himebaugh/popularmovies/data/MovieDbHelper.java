@@ -96,7 +96,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     private static final String CREATE_USER_REVIEW_TABLE = "CREATE TABLE IF NOT EXISTS " + UserReviewEntry.TABLE_NAME + " (" +
             UserReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             UserReviewEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
-            UserReviewEntry.COLUMN_USER_REVIEW_ID + " TEXT, " +
+            UserReviewEntry.COLUMN_USER_REVIEW_ID + " TEXT NOT NULL UNIQUE ON CONFLICT IGNORE, " +
             UserReviewEntry.COLUMN_AUTHOR + " TEXT, " +
             UserReviewEntry.COLUMN_CONTENT + " TEXT, " +
             UserReviewEntry.COLUMN_URL + " TEXT " +

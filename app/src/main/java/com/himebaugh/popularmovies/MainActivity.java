@@ -4,10 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -16,6 +18,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.himebaugh.popularmovies.adapter.MovieAdapter;
+import com.himebaugh.popularmovies.data.MovieContract;
 import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.utils.MovieUtils;
 import com.himebaugh.popularmovies.utils.NetworkUtil;
@@ -28,7 +31,7 @@ import java.util.List;
 import static android.net.ConnectivityManager.CONNECTIVITY_ACTION;
 import static com.himebaugh.popularmovies.utils.NetworkUtil.isNetworkAvailable;
 
-public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener, MovieAdapter.MovieAdapterOnClickHandler {
 
     private final static String TAG = MainActivity.class.getName();
 
@@ -44,15 +47,25 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     GridLayoutManager layoutManager;
 
     ArrayList<Movie> mMovieList;
+    private int mFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.i(TAG, "onCreate: ");
+
         mContext = this;
 
         mRecyclerView = findViewById(R.id.recyclerView);
+
+        // Get default sort/filter from SharedPreferences settings...
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        // Register the listener
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        loadFilterFromPreferences(sharedPreferences);
+
 
 
         // CHANGE GRID SpanCount ON ROTATION
@@ -95,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         } else {
 
             if (!moviesHaveBeenLoaded) {
-                loadMovies(MovieUtils.FILTER_POPULAR, "1");
+                loadMovies(mFilter, "1");
             }
 
         }
@@ -105,9 +118,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         // Setup and register the broadcast receiver
         // This is only used for a TOAST message...
         // Not related to any other logic
-        mNetworkIntentFilter = new IntentFilter();
-        mNetworkReceiver = new NetworkBroadcastReceiver();      // CONNECTIVITY_ACTION
-        mNetworkIntentFilter.addAction(CONNECTIVITY_ACTION);    // Intent.ACTION_AIRPLANE_MODE_CHANGED
+//        mNetworkIntentFilter = new IntentFilter();
+//        mNetworkReceiver = new NetworkBroadcastReceiver();      // CONNECTIVITY_ACTION
+//        mNetworkIntentFilter.addAction(CONNECTIVITY_ACTION);    // Intent.ACTION_AIRPLANE_MODE_CHANGED
 
     }
 
@@ -169,6 +182,25 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     }
 
+    private void loadFilterFromPreferences(SharedPreferences sharedPreferences) {
+
+        String filter = sharedPreferences.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_value_popular));
+
+        if (filter.equals("popular")) {
+            mFilter = MovieUtils.FILTER_POPULAR;
+        } else if (filter.equals("top_rated")) {
+            mFilter = MovieUtils.FILTER_TOPRATED;
+        } else {
+            mFilter = MovieUtils.FILTER_FAVORITE;
+        }
+
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        loadFilterFromPreferences(sharedPreferences);
+    }
+
     public class MovieQueryTask extends AsyncTask<Integer, Void, ArrayList<Movie>> {
 
         @Override
@@ -181,21 +213,32 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         @Override
         protected ArrayList<Movie> doInBackground(Integer... params) {
             Log.i(TAG, "doInBackground: ");
-            // URL url = params[0];
             int filter = params[0];
 
             ArrayList<Movie> movieList = null;
 
-            if (isNetworkAvailable(mContext)) {
-                Log.i(TAG, "Network is Available");
-                try {
-                    movieList = MovieUtils.getMovieList(mContext, filter);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                Log.i(TAG, "Network is NOT Available");
-                movieList = MovieUtils.getMovieListFromCursor(mContext, filter);
+            switch (filter) {
+                case MovieUtils.FILTER_POPULAR:
+                case MovieUtils.FILTER_TOPRATED:
+                    if (isNetworkAvailable(mContext)) {
+                        Log.i(TAG, "Network Available make API call");
+                        try {
+                            movieList = MovieUtils.getMovieList(mContext, filter);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Log.i(TAG, "Network NOT Available load from database");
+                        movieList = MovieUtils.getMovieListFromCursor(mContext, filter);
+                    }
+                    break;
+                case MovieUtils.FILTER_FAVORITE:
+                    Log.i(TAG, "Load Favorites from database");
+                    movieList = MovieUtils.getMovieListFromCursor(mContext, filter);
+                    break;
+                default:
+                    // Should not ever get here...
+                    movieList = MovieUtils.getMovieListFromCursor(mContext, filter);
             }
 
             return movieList;
@@ -260,16 +303,27 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         // by calling loadMovies below.
 
         Log.i(TAG, "onOptionsItemSelected: ");
-
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
         switch (id) {
             case R.id.action_filter_popular:
-                loadMovies(MovieUtils.FILTER_POPULAR, "1");
+                mFilter = MovieUtils.FILTER_POPULAR;
+                loadMovies(mFilter, "1");
                 return true;
             case R.id.action_filter_top_rated:
-                loadMovies(MovieUtils.FILTER_TOPRATED, "1");
+                mFilter = MovieUtils.FILTER_TOPRATED;
+                loadMovies(mFilter, "1");
                 return true;
             case R.id.action_filter_favorite:
-                loadMovies(MovieUtils.FILTER_FAVORITE, "1");
+                mFilter = MovieUtils.FILTER_FAVORITE;
+                loadMovies(mFilter, "1");
+                return true;
+            case R.id.action_settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 // return false;
@@ -289,14 +343,24 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(mNetworkReceiver, mNetworkIntentFilter);
+        Log.i(TAG, "onResume: ");
+
+        // Need to reload movies, just in-case they have changed...
+        // If I favorite a movie in DetailActivity and then return to MainActivity,
+        // re-loading movies here is the only way to see an update.
+        // ...Unless I use a CursorLoader, but that won't meet rubric criteria.
+        loadMovies(mFilter, "1");
+        // getContentResolver().notifyChange(MovieContract.MovieEntry.CONTENT_URI, null);
+        //loadMovies(MovieUtils.FILTER_FAVORITE, "1");
+        //registerReceiver(mNetworkReceiver, mNetworkIntentFilter);
     }
 
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mNetworkReceiver);
+        Log.i(TAG, "onPause: ");
+        //unregisterReceiver(mNetworkReceiver);
     }
 
 
@@ -306,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             Log.i(TAG, "Internet Connection");
 
             if (!moviesHaveBeenLoaded) {
-                loadMovies(MovieUtils.FILTER_POPULAR, "1");
+                loadMovies(mFilter, "1");
             }
 
             // Toast.makeText(this, "Internet Connection", Toast.LENGTH_LONG).show();
