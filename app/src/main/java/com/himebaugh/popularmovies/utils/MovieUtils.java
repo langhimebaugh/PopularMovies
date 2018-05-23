@@ -442,9 +442,12 @@ public class MovieUtils {
 
     private static void saveMovieListToCursor(Context context, ArrayList<Movie> movieList, int filter) {
 
-        // TODO: CLEAR DATABASE OF ALL RECORDS from Movies, UserReviews & VideoTrailers.
+        // CLEAR DATABASE OF ALL RECORDS from UserReviews & VideoTrailers & ALL BUT FAVORITES from Movies
         // Very inefficient, but this way it is always up to date with the latest data...
-        // ONLY clear if movieList.size() > 0
+        if (movieList.size() > 10) {
+            // Only clear the database if I have enough movies to add...
+            clearAllButFavorites(context, filter);
+        }
 
         Log.i(TAG, "saveMovieListToCursor: ");
 
@@ -477,11 +480,16 @@ public class MovieUtils {
 
             bulkMovieValues[i] = movieValues;
 
-            // ****************************************************************************************************************
-            // This slows everything down and adds many more API calls to the MainActivity, but all will be saved for online use...
-            // Call this in the loop as it will retrieve and insert into database
+            // ========== Cache UserReviews & VideoTrailer for OFF-LINE use =========================================
+            // This adds many more API calls & slows everything down a bit... but all will be saved for online use...
+            // It works, but I'm being nice and commenting this out.
 //            try {
 //                getVideoTrailerList(context, movieList.get(i).getId());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            try {
+//                getUserReviewList(context, movieList.get(i).getId());
 //            } catch (IOException e) {
 //                e.printStackTrace();
 //            }
@@ -739,5 +747,33 @@ public class MovieUtils {
         Log.i(TAG, "saveUserReviewListToCursor: Records Inserted = " + recordsInserted);
     }
 
+
+
+    public static void clearAllButFavorites(Context context, int filter) {
+
+        Log.i(TAG, "clearAllButFavorites: ");
+
+        Uri uri = null;
+        String[] projection = null;
+        String selection = null;
+        String[] selectionArgs = null;
+        String sortOrder = null;
+        int recordDeleted;
+
+//        uri = UserReviewEntry.CONTENT_URI;
+//        recordDeleted = context.getContentResolver().delete(uri,selection,selectionArgs);
+//        Log.i(TAG, "clearAllButFavorites: UserReview recordDeleted =" + recordDeleted);
+//
+//        uri = VideoTrailerEntry.CONTENT_URI;
+//        recordDeleted = context.getContentResolver().delete(uri,selection,selectionArgs);
+//        Log.i(TAG, "clearAllButFavorites: VideoTrailer recordDeleted =" + recordDeleted);
+
+        uri = MovieEntry.CONTENT_URI;
+        selection = MovieEntry.COLUMN_CATEGORY + " = " + filter + " AND " + MovieEntry.COLUMN_FAVORITE + " != 1"; // Set selection where not = favorites
+        recordDeleted = context.getContentResolver().delete(uri,selection,selectionArgs);
+        Log.i(TAG, "clearAllButFavorites: MovieEntry recordDeleted =" + recordDeleted);
+
+
+    }
 
 }

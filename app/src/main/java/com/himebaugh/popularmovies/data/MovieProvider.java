@@ -236,7 +236,10 @@ public class MovieProvider extends ContentProvider {
                 if (id > 0) {
                     returnUri = ContentUris.withAppendedId(UserReviewEntry.CONTENT_URI, id);
                 } else {
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                    Log.i(TAG, "LANG User values="+values.toString());
+                    returnUri = null;
+                    // UNIQUE ON CONFLICT IGNORE will trigger exception below if can't insert...
+                    //throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
                 break;
 
@@ -247,8 +250,10 @@ public class MovieProvider extends ContentProvider {
                 if (id > 0) {
                     returnUri = ContentUris.withAppendedId(VideoTrailerEntry.CONTENT_URI, id);
                 } else {
+                    Log.i(TAG, "LANG Video values="+values.toString());
                     returnUri = null;
-                    // throw new android.database.SQLException("Failed to insert row into " + uri);
+                    // UNIQUE ON CONFLICT IGNORE will trigger exception below if can't insert...
+                    //throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
                 break;
 
@@ -299,6 +304,22 @@ public class MovieProvider extends ContentProvider {
                 // Use selections/selectionArgs to filter for this ID
                 recordsDeleted = db.delete(VideoTrailerEntry.TABLE_NAME, "_id=?", new String[]{id});
                 break;
+
+            case MOVIES:
+                // USED TO DELETE ALL BUT FAVORITE RECORDS
+                recordsDeleted = db.delete(MovieEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+
+            case USERREVIEWS:
+                // USED TO DELETE ALL BUT FAVORITE RECORDS
+                recordsDeleted = db.delete(UserReviewEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+
+            case VIDEOTRAILERS:
+                // USED TO DELETE ALL BUT FAVORITE RECORDS
+                recordsDeleted = db.delete(VideoTrailerEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -377,8 +398,8 @@ public class MovieProvider extends ContentProvider {
 //                        long id = db.insertWithOnConflict(MovieEntry.TABLE_NAME,
 //                                null, value, SQLiteDatabase.CONFLICT_IGNORE);
 
-                        long _id = db.insert(MovieEntry.TABLE_NAME, null, value);
-                        if (_id != -1) {
+                        long id = db.insert(MovieEntry.TABLE_NAME, null, value);
+                        if (id != -1) {
                             rowsInserted++;
                         }
                     }
@@ -401,5 +422,7 @@ public class MovieProvider extends ContentProvider {
         }
 
     }
+
+
 
 }
