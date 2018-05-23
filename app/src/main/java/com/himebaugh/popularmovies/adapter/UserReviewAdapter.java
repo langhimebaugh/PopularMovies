@@ -28,14 +28,14 @@ public class UserReviewAdapter extends RecyclerView.Adapter<UserReviewAdapter.Li
      * Using this Method designed for Cursors to pass in List of Movies
      */
     public List<UserReview> loadUserReviews(List<UserReview> userReviewList) {
-        // check if this cursor is the same as the previous cursor (mCursor)
+        // check if this list is the same as the previous list (mUserReviewList)
         if (mUserReviewList == userReviewList) {
             return null; // bc nothing has changed
         }
         List<UserReview> temp = mUserReviewList;
-        mUserReviewList = userReviewList; // new cursor value assigned
+        mUserReviewList = userReviewList; // new list value assigned
 
-        //check if this is a valid cursor, then update the cursor
+        //check if this is a valid list, then update the list
         if (userReviewList != null) {
             this.notifyDataSetChanged();
         }

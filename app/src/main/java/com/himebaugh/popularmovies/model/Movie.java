@@ -157,7 +157,6 @@ public class Movie implements Parcelable {
 
     // CODE BELOW GENERATED AT http://www.parcelabler.com/
 
-
     protected Movie(Parcel in) {
         poster_path = in.readString();
         byte adultVal = in.readByte();
@@ -230,6 +229,5 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
-
 
 }

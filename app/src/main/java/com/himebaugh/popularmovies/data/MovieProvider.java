@@ -18,10 +18,9 @@ import com.himebaugh.popularmovies.data.MovieContract.VideoTrailerEntry;
 
 public class MovieProvider extends ContentProvider {
 
-    // NOTE:
+    // NOTE TO SELF:
     // USE ContentResolver  NOT ContentProvider
     // Don't close the database ... db.close();
-
 
     private static final String TAG = MovieProvider.class.getSimpleName();
 
@@ -236,7 +235,7 @@ public class MovieProvider extends ContentProvider {
                 if (id > 0) {
                     returnUri = ContentUris.withAppendedId(UserReviewEntry.CONTENT_URI, id);
                 } else {
-                    Log.i(TAG, "LANG User values="+values.toString());
+                    Log.i(TAG, "LANG User values=" + values.toString());
                     returnUri = null;
                     // UNIQUE ON CONFLICT IGNORE will trigger exception below if can't insert...
                     //throw new android.database.SQLException("Failed to insert row into " + uri);
@@ -250,7 +249,7 @@ public class MovieProvider extends ContentProvider {
                 if (id > 0) {
                     returnUri = ContentUris.withAppendedId(VideoTrailerEntry.CONTENT_URI, id);
                 } else {
-                    Log.i(TAG, "LANG Video values="+values.toString());
+                    Log.i(TAG, "LANG Video values=" + values.toString());
                     returnUri = null;
                     // UNIQUE ON CONFLICT IGNORE will trigger exception below if can't insert...
                     //throw new android.database.SQLException("Failed to insert row into " + uri);
@@ -307,16 +306,19 @@ public class MovieProvider extends ContentProvider {
 
             case MOVIES:
                 // USED TO DELETE ALL BUT FAVORITE RECORDS
+                // Used in MovieUtils.clearAllButFavorites()
                 recordsDeleted = db.delete(MovieEntry.TABLE_NAME, selection, selectionArgs);
                 break;
 
             case USERREVIEWS:
                 // USED TO DELETE ALL BUT FAVORITE RECORDS
+                // Used in MovieUtils.clearAllButFavorites() but commented out
                 recordsDeleted = db.delete(UserReviewEntry.TABLE_NAME, selection, selectionArgs);
                 break;
 
             case VIDEOTRAILERS:
                 // USED TO DELETE ALL BUT FAVORITE RECORDS
+                // Used in MovieUtils.clearAllButFavorites() but commented out
                 recordsDeleted = db.delete(VideoTrailerEntry.TABLE_NAME, selection, selectionArgs);
                 break;
 
@@ -382,7 +384,7 @@ public class MovieProvider extends ContentProvider {
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
 
         Log.i(TAG, "bulkInsert: ");
-        
+
         // Get access to the database and write URI matching code to recognize a single item
         SQLiteDatabase db = mMovieDbHelper.getWritableDatabase();
 
@@ -395,8 +397,6 @@ public class MovieProvider extends ContentProvider {
                     for (ContentValues value : values) {
 
                         Log.i(TAG, "bulkInsert: FOR");
-//                        long id = db.insertWithOnConflict(MovieEntry.TABLE_NAME,
-//                                null, value, SQLiteDatabase.CONFLICT_IGNORE);
 
                         long id = db.insert(MovieEntry.TABLE_NAME, null, value);
                         if (id != -1) {
@@ -422,7 +422,5 @@ public class MovieProvider extends ContentProvider {
         }
 
     }
-
-
 
 }

@@ -30,7 +30,6 @@ public class MovieContract {
         public static final String COLUMN_OVERVIEW = "overview";
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_GENRE_IDS = "genre_ids";
-        //public static final String COLUMN_MOVIE_ID = "movie_id";          // External not SQLite ID
         public static final String COLUMN_ORIGINAL_TITLE = "original_title";
         public static final String COLUMN_ORIGINAL_LANGUAGE = "original_language";
         public static final String COLUMN_TITLE = "title";

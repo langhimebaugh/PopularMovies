@@ -1,6 +1,5 @@
 package com.himebaugh.popularmovies.utils;
 
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -10,19 +9,12 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.himebaugh.popularmovies.R;
-import com.himebaugh.popularmovies.data.MovieContract;
-import com.himebaugh.popularmovies.data.MovieProvider;
-import com.himebaugh.popularmovies.model.Movie;
-import com.himebaugh.popularmovies.model.Result;
-import com.himebaugh.popularmovies.model.UserReview;
-import com.himebaugh.popularmovies.model.VideoTrailer;
 import com.himebaugh.popularmovies.data.MovieContract.MovieEntry;
 import com.himebaugh.popularmovies.data.MovieContract.UserReviewEntry;
 import com.himebaugh.popularmovies.data.MovieContract.VideoTrailerEntry;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.himebaugh.popularmovies.model.Movie;
+import com.himebaugh.popularmovies.model.UserReview;
+import com.himebaugh.popularmovies.model.VideoTrailer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,8 +23,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +35,7 @@ import okhttp3.Response;
 
 public class MovieUtils {
 
-    // NOTE: Avoid Null Error...
+    // NOTE TO SELF: Avoid Null Error...
     // USE ContentResolver  NOT ContentProvider
     // So... context.getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
     // Not.. movieProvider.query(uri, projection, selection, selectionArgs, sortOrder);
@@ -56,11 +46,10 @@ public class MovieUtils {
     public static final int FILTER_TOPRATED = 1;
     public static final int FILTER_FAVORITE = 2;
 
-    public final static String POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
-    public final static String TOPRATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
-    public final static String FAVORITE_MOVIES = "favorite";
-    public final static String VIDEOS_ENDPOINT = "/videos";
-    public final static String REVIEWS_ENDPOINT = "/reviews";
+    private final static String POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
+    private final static String TOPRATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
+    private final static String VIDEOS_ENDPOINT = "/videos";
+    private final static String REVIEWS_ENDPOINT = "/reviews";
     private final static String PARAM_APIKEY = "api_key";
     private final static String PARAM_PAGE = "page";
     private final static String page = "1";
@@ -84,7 +73,7 @@ public class MovieUtils {
      * @param movieID The movie that the detail will be queried for.
      * @return The URL to use to query the GitHub.
      */
-    public static URL buildEndpointUrl(Context context, String movieID, String endPoint) {
+    private static URL buildEndpointUrl(Context context, String movieID, String endPoint) {
 
         Log.i(TAG, "buildEndpointUrl: ");
 
@@ -94,10 +83,8 @@ public class MovieUtils {
 
         String movieDatabaseUrl = baseUrl + movieID + endPoint;
 
-
         // Reading API KEY from text file on gitignore list
         String apiKey = readRawTextFile(context, R.raw.api_key);
-        // String apiKey = "Your-Key-Here";
 
         Log.i(TAG, "buildUrl: apiKey=" + apiKey);
 
@@ -121,19 +108,15 @@ public class MovieUtils {
      * @param movieDatabaseUrl The keyword that will be queried for.
      * @return The URL to use to query the Videos Endpoint.
      */
-    public static URL buildUrl(Context context, String movieDatabaseUrl, String page) {
+    private static URL buildUrl(Context context, String movieDatabaseUrl, String page) {
 
         Log.i(TAG, "buildUrl: ");
 
         // Reading API KEY from text file on gitignore list
         String apiKey = readRawTextFile(context, R.raw.api_key);
-        // String apiKey = "Your-Key-Here";
 
         Log.i(TAG, "buildUrl: apiKey=" + apiKey);
-
-        Log.i(TAG, "HELP-1: ");
-        Log.i(TAG, "movieDatabaseUrl: " + movieDatabaseUrl.toString());
-        Log.i(TAG, "HELP-2: ");
+        Log.i(TAG, "movieDatabaseUrl: " + movieDatabaseUrl);
 
         Uri builtUri = Uri.parse(movieDatabaseUrl).buildUpon()
                 .appendQueryParameter(PARAM_PAGE, page)
@@ -171,9 +154,8 @@ public class MovieUtils {
      *
      * @param url The URL to fetch the HTTP response from.
      * @return The contents of the HTTP response.
-     * @throws IOException Related to network and stream reading
      */
-    public static String getJsonFromHttpUrl(URL url) {
+    private static String getJsonFromHttpUrl(URL url) {
 
         Log.i(TAG, "getJsonFromHttpUrl: ");
 
@@ -348,7 +330,7 @@ public class MovieUtils {
 
                     // ***********************************************************
                     // The latest MovieList results are saved to the database
-                    // Also, MovieUtils.FILTER_POPULAR is saved to COLUMN_CATEGORY
+                    // Also, MovieUtils.FILTER_TOPRATED is saved to COLUMN_CATEGORY
                     // ***********************************************************
                     saveMovieListToCursor(context, returnMovieList, MovieUtils.FILTER_TOPRATED);
                 }
@@ -405,7 +387,7 @@ public class MovieUtils {
             String overview = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_OVERVIEW));
             String releaseDate = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_RELEASE_DATE));
 
-//            String temp = String.valueOf(cursor.getBlob(cursor.getColumnIndex(MovieEntry.COLUMN_POSTER_PATH)));
+            // String temp = String.valueOf(cursor.getBlob(cursor.getColumnIndex(MovieEntry.COLUMN_GENRE_IDS)));
             ArrayList<Integer> genreIds = null;  // Can't figure out how to convert, but don't need.
 
             int id = cursor.getInt(cursor.getColumnIndex(MovieEntry._ID));
@@ -482,7 +464,7 @@ public class MovieUtils {
 
             // ========== Cache UserReviews & VideoTrailer for OFF-LINE use =========================================
             // This adds many more API calls & slows everything down a bit... but all will be saved for online use...
-            // It works, but I'm being nice and commenting this out.
+            // It works, but I'm being nice to the API and commenting this out.
 //            try {
 //                getVideoTrailerList(context, movieList.get(i).getId());
 //            } catch (IOException e) {
@@ -513,11 +495,7 @@ public class MovieUtils {
         // http://api.themoviedb.org/3/movie/{id}/videos?api_key=<YOUR-API-KEY>
         URL queryUrl = MovieUtils.buildEndpointUrl(context, String.valueOf(movieId), MovieUtils.VIDEOS_ENDPOINT);
 
-        //URL queryUrl = MovieUtils.buildUrl(context, MovieUtils.POPULAR_MOVIES, page);
-
         String videoTrailersJsonResults = getJsonFromHttpUrl(queryUrl);
-
-        // ======================
 
         if (videoTrailersJsonResults == null) {
 
@@ -544,7 +522,10 @@ public class MovieUtils {
 
             // ***********************************************************
             // The latest VideoTrailerList results are saved to the database
-            // This worked but only save 1 movie at a time.  Now doing it above in saveMovieListToCursor()
+            // This works but only saves VideoTrailers for 1 movie at a time AND only if you view DetailActivity for the movie.
+
+            // In saveMovieListToCursor() I have code that will Cache ALL UserReviews & VideoTrailers for OFF-LINE use
+            // It has been commented out as it is inside a loop and make many API calls in a short period of time.
             // ***********************************************************
             saveVideoTrailerListToCursor(context, returnVideoTrailerList, movieId);
         }
@@ -640,10 +621,12 @@ public class MovieUtils {
 
         List<UserReview> returnUserReviewList;
 
+        // To fetch reviews you will want to make a request to the reviews endpoint
+        // http://api.themoviedb.org/3/movie/{id}/reviews?api_key=<YOUR-API-KEY>
+
         URL queryUrl = MovieUtils.buildEndpointUrl(context, String.valueOf(movieId), MovieUtils.REVIEWS_ENDPOINT);
 
         String userReviewsJsonResults = getJsonFromHttpUrl(queryUrl);
-
 
         if (userReviewsJsonResults == null) {
 
@@ -670,14 +653,16 @@ public class MovieUtils {
 
             // ***********************************************************
             // The latest UserReviewList results are saved to the database
-            // This worked but only save 1 movie at a time.  Now doing it above in saveMovieListToCursor()
+            // This works but only saves UserReviews for 1 movie at a time AND only if you view DetailActivity for the movie.
+
+            // In saveMovieListToCursor() I have code that will Cache ALL UserReviews & VideoTrailers for OFF-LINE use
+            // It has been commented out as it is inside a loop and make many API calls in a short period of time.
             // ***********************************************************
             saveUserReviewListToCursor(context, returnUserReviewList, movieId);
         }
 
         return returnUserReviewList;
     }
-
 
     public static List<UserReview> getUserReviewListFromCursor(Context context, int movieId) {
 
@@ -747,8 +732,6 @@ public class MovieUtils {
         Log.i(TAG, "saveUserReviewListToCursor: Records Inserted = " + recordsInserted);
     }
 
-
-
     public static void clearAllButFavorites(Context context, int filter) {
 
         Log.i(TAG, "clearAllButFavorites: ");
@@ -770,10 +753,8 @@ public class MovieUtils {
 
         uri = MovieEntry.CONTENT_URI;
         selection = MovieEntry.COLUMN_CATEGORY + " = " + filter + " AND " + MovieEntry.COLUMN_FAVORITE + " != 1"; // Set selection where not = favorites
-        recordDeleted = context.getContentResolver().delete(uri,selection,selectionArgs);
+        recordDeleted = context.getContentResolver().delete(uri, selection, selectionArgs);
         Log.i(TAG, "clearAllButFavorites: MovieEntry recordDeleted =" + recordDeleted);
-
-
     }
 
 }

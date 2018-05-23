@@ -9,17 +9,15 @@ import com.himebaugh.popularmovies.data.MovieContract.MovieEntry;
 import com.himebaugh.popularmovies.data.MovieContract.UserReviewEntry;
 import com.himebaugh.popularmovies.data.MovieContract.VideoTrailerEntry;
 
-import java.util.ArrayList;
-
 /**
- * Manages a local database for weather data.
+ * Manages a local database for movie data.
  */
 public class MovieDbHelper extends SQLiteOpenHelper {
 
     private static final String TAG = MovieDbHelper.class.getSimpleName();
 
     // Database names should end with the .db extension.
-    public static final String DATABASE_NAME = "movietest2.db";
+    public static final String DATABASE_NAME = "movie.db";
 
     // If you change the database schema, you must increment the database version
     // or the onUpgrade method will not be called.
@@ -27,37 +25,24 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
     // Database Schema
 
-    // Assuming I want to have all data available offline, I will create at least 3 tables and maybe 4 depending on the
-    // design considerations outlined below.  Tables: Movie, UserReviews, VideoTrailer and possibly Favorites
-
+    // I wanted to have all data available offline, but this adds many more API calls & slows everything down a bit...
+    // located MovieUtils.saveMovieListToCursor() all will be saved for offline use... but I've commented this out.
+    //
     // Design Considerations:
-    //      1) Primary Key Version 1: Use MovieEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-    //         MovieEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
-    //      2) Primary Key Version 2: Use MovieEntry._ID + " INTEGER PRIMARY KEY, " +
-    //      3) It may be possible that POPULAR_MOVIES & TOPRATED_MOVIES include overlapping ID's
-    //         Either use Primary Key Version 1 above, OR if using Primary Key Version 2 I will need to ignore
-    //         one of the records with overlapping ID's.
-    //      4) Need COLUMN_CATEGORY to track categories POPULAR_MOVIES & TOPRATED_MOVIES
-    //      5) Handling Favorite Version 1: Add Favorite column and toggle it On/Off
-    //         Favorite column may not be best here if I delete all records and re-save for every network call.
-    //         Obviously, This would erase all the favorites too.
-    //      6) Handling Favorite Version 2: Upon selecting as favorite I could duplicate the record
-    //         (requires Primary Key Version 1 above) then flag as FAVORITE in COLUMN_CATEGORY.
-    //         In this scenario I would not delete any records marked as FAVORITE.
-    //         Problem is eventually some of these movies may become outdated and no longer function properly.
-    //      7) Handling Favorite Version 3: Add a fourth table called favorite that contains the MovieEntry._ID
-    //         Join the table with the Movie table so upon deleting and refreshing POPULAR_MOVIES & TOPRATED_MOVIES,
-    //         All favorites would show up as long as they are in the movie table.
-    //      8) If this were a REAL APP, Ideally I would download the original movie data.  Then hope the API would
-    //         provide an "endpoint" for deleted or modified movies where I could update the database as needed!
-    //         BETTER YET... own the data and host in FIREBASE and it would change automatically!!!
-    //      9) 6 hours later... I figured out another option.  Really a mix between Version 1 & 3.
-    //         I've added COLUMN_FAVORITE which I will toggle on/off
-    //         I'm storing the original id from The Movie DB API as _ID without AUTOINCREMENT
-    //         Upon every network call, I delete all records except where Favorite
-    //         New records are added with ON CONFLICT IGNORE
-    //         Moving Forward even though possible problems described in #3 & #6 above.
-    //         See below...
+    //      I use 3 tables: Movie, UserReviews, VideoTrailer
+    //      Primary Key is MovieEntry._ID + " INTEGER PRIMARY KEY, " +
+    //      Primary Key is not using AUTOINCREMENT
+    //      It may be possible that POPULAR_MOVIES & TOPRATED_MOVIES include overlapping ID's (If one movie is in both categories)
+    //      I will need to ignore one of the records with overlapping ID's when inserting.
+    //      Need COLUMN_CATEGORY to track categories POPULAR_MOVIES & TOPRATED_MOVIES
+    //      Need COLUMN_FAVORITE which I will toggle on/off
+    //      Store the original id from The Movie DB API as _ID without AUTOINCREMENT
+    //      Upon every network call, I delete all records except where Favorite
+    //      New records are added with ON CONFLICT IGNORE
+    //      I attempted to use FOREIGN KEY constraints but the logic of my inserts are not set up where I can insert into all three tables
+    //         at the same time within a transaction.  I still use COLUMN_MOVIE_ID as a foreign key, it's just not locked down like it should be.
+    //      I setup indexes for speedier reads
+    //      I setup some logic to save the favorites upon a database upgrade.
 
 
     // This String contains an SQL statement that will create a table to hold movie data
@@ -80,17 +65,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
             MovieEntry.COLUMN_CATEGORY + " INTEGER NOT NULL DEFAULT '0'  " +
             "); ";
 
-    // Insert the movies into the database only if the movie is not currently in the database
-    // (using ON_CONFLICT_IGNORE on the movie id).
-
-    /*
-     * To ensure this table can only contain one weather entry per date, we declare
-     * the date column to be unique. We also specify "ON CONFLICT REPLACE". This tells
-     * SQLite that if we have a weather entry for a certain date and we attempt to
-     * insert another weather entry with that date, we replace the old weather entry.
-     */
-    // " UNIQUE (" + WeatherEntry.COLUMN_DATE + ") ON CONFLICT REPLACE);";
-
+    // ON CONFLICT IGNORE - Insert the movies into the database only if the movie is not currently in the database
 
     // This String contains an SQL statement that will create a table to hold user review data
     private static final String CREATE_USER_REVIEW_TABLE = "CREATE TABLE IF NOT EXISTS " + UserReviewEntry.TABLE_NAME + " (" +
@@ -100,7 +75,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
             UserReviewEntry.COLUMN_AUTHOR + " TEXT, " +
             UserReviewEntry.COLUMN_CONTENT + " TEXT, " +
             UserReviewEntry.COLUMN_URL + " TEXT " +
-    //        "FOREIGN KEY(" + UserReviewEntry.COLUMN_MOVIE_ID + ") REFERENCES " + MovieEntry.TABLE_NAME + "(_id)" + " DEFERRABLE INITIALLY DEFERRED" +
+            //        "FOREIGN KEY(" + UserReviewEntry.COLUMN_MOVIE_ID + ") REFERENCES " + MovieEntry.TABLE_NAME + "(_id)" + " DEFERRABLE INITIALLY DEFERRED" +
             "); ";
 
     // This String contains an SQL statement that will create a table to hold video trailer data
@@ -117,7 +92,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
             VideoTrailerEntry.COLUMN_TYPE + " TEXT " +
             // UidStore.COLUMN_UID + " TEXT NOT NULL UNIQUE ON CONFLICT IGNORE," +
             //       "UNIQUE (" + VideoTrailerEntry.COLUMN_VIDEO_TRAILER_ID + ") ON CONFLICT IGNORE " +
-    //  "FOREIGN KEY(" + VideoTrailerEntry.COLUMN_MOVIE_ID + ") REFERENCES " + MovieEntry.TABLE_NAME + "(_id)" + " DEFERRABLE INITIALLY DEFERRED" +
+            //  "FOREIGN KEY(" + VideoTrailerEntry.COLUMN_MOVIE_ID + ") REFERENCES " + MovieEntry.TABLE_NAME + "(_id)" + " DEFERRABLE INITIALLY DEFERRED" +
             "); ";
 
     private static final String CREATE_INDEX1 = "CREATE INDEX moviefavorite_idx ON " + MovieEntry.TABLE_NAME + "(" + MovieEntry.COLUMN_FAVORITE + ");";

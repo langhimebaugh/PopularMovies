@@ -11,8 +11,4 @@
             android:key="@string/pref_sort_key"
             android:title="@string/pref_sort_label"/>
 
-        <!--android:summary="@string/pref_sort_description"-->
-
-
-
 </PreferenceScreen>

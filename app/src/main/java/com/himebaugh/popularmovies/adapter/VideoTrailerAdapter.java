@@ -35,8 +35,7 @@ public class VideoTrailerAdapter extends RecyclerView.Adapter<VideoTrailerAdapte
 
     /**
      * Using this Method designed for Cursors to pass in List of Movies
-     *
-     * */
+     */
     public List<VideoTrailer> loadVideoTrailers(List<VideoTrailer> videoTrailerList) {
         // check if this cursor is the same as the previous cursor (mCursor)
         if (mVideoTrailerList == videoTrailerList) {
@@ -66,13 +65,7 @@ public class VideoTrailerAdapter extends RecyclerView.Adapter<VideoTrailerAdapte
 
         VideoTrailer videoTrailer = mVideoTrailerList.get(position);
 
-        // holder.listItemTest.setText(movie.getTitle());
         holder.listItemName.setText(videoTrailer.getName());
-
-//        String imageURL = BASE_URL + SIZE + movie.getPosterPath();
-//
-//        Picasso.get().load(imageURL).into(holder.listItemImageView);
-
     }
 
     @Override
@@ -83,22 +76,18 @@ public class VideoTrailerAdapter extends RecyclerView.Adapter<VideoTrailerAdapte
         return mVideoTrailerList.size();
     }
 
-
     public class ListItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         TextView listItemName;
 
         // Play Icon Image in video_list_item.xml
         // Doesn't change so no need to do anything here.
-
         private ListItemViewHolder(View itemView) {
             super(itemView);
 
             listItemName = itemView.findViewById(R.id.trailer_name_tv);
 
             itemView.setOnClickListener(this);
-
-
         }
 
         @Override

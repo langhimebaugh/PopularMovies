@@ -8,13 +8,8 @@ import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceScreen;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
-public class SettingsFragment extends PreferenceFragmentCompat implements
-        SharedPreferences.OnSharedPreferenceChangeListener, Preference.OnPreferenceChangeListener {
+public class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = SettingsFragment.class.getSimpleName();
 
@@ -41,8 +36,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
             }
         }
 
-        Preference preference = findPreference(getString(R.string.pref_sort_key));
-        preference.setOnPreferenceChangeListener(this);
     }
 
     @Override
@@ -84,31 +77,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
     }
 
     @Override
-    public boolean onPreferenceChange(Preference preference, Object newValue) {
-
-        Toast error = Toast.makeText(getContext(), "Please select a number between 0.1 and 3", Toast.LENGTH_SHORT);
-
-        // Double check that the preference is the size preference
-//            String sizeKey = getString(R.string.pref_size_key);
-//            if (preference.getKey().equals(sizeKey)) {
-//                String stringSize = (String) newValue;
-//                try {
-//                    float size = Float.parseFloat(stringSize);
-//                    // If the number is outside of the acceptable range, show an error.
-//                    if (size > 3 || size <= 0) {
-//                        error.show();
-//                        return false;
-//                    }
-//                } catch (NumberFormatException nfe) {
-//                    // If whatever the user entered can't be parsed to a number, show an error
-//                    error.show();
-//                    return false;
-//                }
-//            }
-        return true;
-    }
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -117,20 +85,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        // Need to update this way because can't use BaseFragment
-        //((MainActivity) getActivity()).setActionBarTitle("Settings");
-
-        return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
-
 }
-

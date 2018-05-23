@@ -1,9 +1,7 @@
 package com.himebaugh.popularmovies;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
@@ -18,17 +16,12 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.himebaugh.popularmovies.adapter.MovieAdapter;
-import com.himebaugh.popularmovies.data.MovieContract;
 import com.himebaugh.popularmovies.model.Movie;
 import com.himebaugh.popularmovies.utils.MovieUtils;
-import com.himebaugh.popularmovies.utils.NetworkUtil;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
-import static android.net.ConnectivityManager.CONNECTIVITY_ACTION;
 import static com.himebaugh.popularmovies.utils.NetworkUtil.isNetworkAvailable;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener, MovieAdapter.MovieAdapterOnClickHandler {
@@ -38,11 +31,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private RecyclerView mRecyclerView;
     private MovieAdapter mAdapter;
     private Context mContext;
-    //private int mMovieCount = 0;
     private Boolean moviesHaveBeenLoaded = false;
-
-    NetworkBroadcastReceiver mNetworkReceiver;
-    IntentFilter mNetworkIntentFilter;
 
     GridLayoutManager layoutManager;
 
@@ -66,20 +55,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
         loadFilterFromPreferences(sharedPreferences);
 
-
-
         // CHANGE GRID SpanCount ON ROTATION
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             layoutManager = new GridLayoutManager(this, 2);
         } else {
             layoutManager = new GridLayoutManager(this, 4);
         }
-
-        // LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        // layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
-        // May save position and reset upon orientation change???
-        // layoutManager.scrollToPosition(0);
 
         mRecyclerView.setLayoutManager(layoutManager);
         // allows for optimizations if all items are of the same size:
@@ -89,18 +70,15 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         mAdapter = new MovieAdapter(this, this);
         mRecyclerView.setAdapter(mAdapter);
 
-        // RELOADS ON ORIENTATION CHANGE & COMING BACK FROM DETAIL ACTIVITY
-        // FIX IN PART-2 OF PROJECT
-        // FRAGMENTS MAY HELP
-
         Log.i(TAG, "onCreate - moviesHaveBeenLoaded: " + moviesHaveBeenLoaded);
-
 
         if (savedInstanceState != null) {
 
+            // use MovieList from savedInstanceState to avoid making an API Call!
+
             Log.i(TAG, "onCreate: RESTORE FROM savedInstanceState");
 
-            mMovieList =  savedInstanceState.getParcelableArrayList("movieList");
+            mMovieList = savedInstanceState.getParcelableArrayList("movieList");
 
             mAdapter.loadMovies(mMovieList);
             mAdapter.notifyDataSetChanged();
@@ -113,28 +91,15 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         }
 
-
-
-        // Setup and register the broadcast receiver
-        // This is only used for a TOAST message...
-        // Not related to any other logic
-//        mNetworkIntentFilter = new IntentFilter();
-//        mNetworkReceiver = new NetworkBroadcastReceiver();      // CONNECTIVITY_ACTION
-//        mNetworkIntentFilter.addAction(CONNECTIVITY_ACTION);    // Intent.ACTION_AIRPLANE_MODE_CHANGED
-
     }
 
     // SAVE MovieList on ROTATION so it doesn't make API Call!
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
         outState.putParcelableArrayList("movieList", mMovieList);
-
     }
-
-
 
     @Override
     public void onClick(Movie movie) {
@@ -155,10 +120,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         // intent.putParcelableArrayListExtra("movie", movie);
 
         startActivity(intent);
-
     }
 
-    // private void loadMovies(String movieDatabaseUrl, String page) {
     private void loadMovies(int filter, String page) {
 
         Log.i(TAG, "loadMovies: ");
@@ -179,11 +142,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
 
         new MovieQueryTask().execute(filter);
-
     }
 
     private void loadFilterFromPreferences(SharedPreferences sharedPreferences) {
 
+        Log.i(TAG, "loadFilterFromPreferences: ");
         String filter = sharedPreferences.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_value_popular));
 
         if (filter.equals("popular")) {
@@ -193,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         } else {
             mFilter = MovieUtils.FILTER_FAVORITE;
         }
-
+        Log.i(TAG, "loadFilterFromPreferences: mFilter =" + mFilter);
     }
 
     @Override
@@ -207,7 +170,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         protected void onPreExecute() {
             super.onPreExecute();
             Log.i(TAG, "onPreExecute: ");
-            // mLoadingIndicatorProgressBar.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -247,28 +209,17 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         @Override
         protected void onPostExecute(ArrayList<Movie> movieList) {
 
-
             // Save to store on rotation
             mMovieList = movieList;
 
             Log.i(TAG, "onPostExecute: ");
 
-//            Log.i(TAG, "movieList.toString(): " + movieList.toString());
-//
             Log.i(TAG, "movieList.size()" + movieList.size());
-//
-//            final ListIterator<Movie> listIterator = movieList.listIterator();
-//
-//            while (listIterator.hasNext()) {
-//                Movie movie = listIterator.next();
-//
-//                Log.i(TAG, "listIterator: " + movie.getTitle() + " " + movie.getPosterPath());
-//            }
 
             // TO PREVENT ERROR WHEN NO INTERNET...
             if (movieList == null) {
 
-                // This should only happen initially as data should be pulling from MovieProvider
+                // This should only happen if no internet connection when app is run for the first time
                 Toast.makeText(getApplicationContext(), R.string.msg_internet_connection, Toast.LENGTH_LONG).show();
 
             } else {
@@ -333,14 +284,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-
-
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume: ");
@@ -350,19 +293,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         // re-loading movies here is the only way to see an update.
         // ...Unless I use a CursorLoader, but that won't meet rubric criteria.
         loadMovies(mFilter, "1");
-        // getContentResolver().notifyChange(MovieContract.MovieEntry.CONTENT_URI, null);
-        //loadMovies(MovieUtils.FILTER_FAVORITE, "1");
-        //registerReceiver(mNetworkReceiver, mNetworkIntentFilter);
     }
-
 
     @Override
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "onPause: ");
-        //unregisterReceiver(mNetworkReceiver);
     }
-
 
     private void showConnectivityStatus(boolean isNetworkAvailable) {
         if (isNetworkAvailable) {
@@ -373,9 +310,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 loadMovies(mFilter, "1");
             }
 
-            // Toast.makeText(this, "Internet Connection", Toast.LENGTH_LONG).show();
-
-        } else if (!moviesHaveBeenLoaded){
+        } else if (!moviesHaveBeenLoaded) {
 
             // Display a Toast that the internet is down...
             // But only if no movies are displayed and there is no internet connection.
@@ -383,26 +318,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             Log.i(TAG, "No Internet Connection");
 
             Toast.makeText(this, "No Internet Connection!", Toast.LENGTH_LONG).show();
-
-        }
-    }
-
-
-    private class NetworkBroadcastReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            boolean connectivityChange = (action.equals(CONNECTIVITY_ACTION));
-
-            if (connectivityChange) {
-
-                Log.i(TAG, "onReceive: " + CONNECTIVITY_ACTION);
-
-                showConnectivityStatus(NetworkUtil.isNetworkAvailable(context));
-            }
-
         }
     }
 
