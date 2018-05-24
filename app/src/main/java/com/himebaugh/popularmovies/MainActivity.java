@@ -253,12 +253,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         // When a user changes the filter criteria (“most popular and highest rated”) the main view gets updated
         // by calling loadMovies below.
 
-        Log.i(TAG, "onOptionsItemSelected: ");
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
-            return true;
-        }
         switch (id) {
             case R.id.action_filter_popular:
                 mFilter = MovieUtils.FILTER_POPULAR;

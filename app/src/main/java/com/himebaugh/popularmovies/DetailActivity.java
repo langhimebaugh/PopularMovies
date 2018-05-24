@@ -28,6 +28,7 @@ import com.himebaugh.popularmovies.utils.MovieUtils;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -59,13 +60,13 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     private RecyclerView mReviewRecyclerView;
     private UserReviewAdapter mReviewAdapter;
 
-    private Boolean videoTrailersHaveBeenLoaded = false;
-    private Boolean userReviewsHaveBeenLoaded = false;
     private Boolean isFavorite = false;
     private Boolean videoTrailerIsAvailableToShare = false;
 
     private Movie mMovie;
     private VideoTrailer mVideoTrailer;
+    private ArrayList<VideoTrailer> mVideoTrailerList;
+    private ArrayList<UserReview> mUserReviewList;
 
     private MenuItem favoriteSelected;
     private MenuItem favoriteNotSelected;
@@ -88,68 +89,98 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         // Instantiate mDetailBinding using DataBindingUtil
         mDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
 
+
         Intent intentThatStartedThisActivity = getIntent();
 
-        if (intentThatStartedThisActivity != null) {
+        if (savedInstanceState != null) {
+
+            // RESTORE FROM savedInstanceState"
+            mMovie = savedInstanceState.getParcelable("movie");
+            displayMovieInfo();
+
+            mVideoTrailerList = savedInstanceState.getParcelableArrayList("videoTrailerList");
+            setupVideoTrailers();
+            mVideoAdapter.loadVideoTrailers(mVideoTrailerList);
+            mVideoAdapter.notifyDataSetChanged();
+
+            mUserReviewList = savedInstanceState.getParcelableArrayList("userReviewList");
+            setupUserReviews();
+            mReviewAdapter.loadUserReviews(mUserReviewList);
+            mReviewAdapter.notifyDataSetChanged();
+
+        } else if (intentThatStartedThisActivity != null) {
+
+            Log.i(TAG, "onCreate: intentThatStartedThisActivity != null");
 
             Bundle bundle = intentThatStartedThisActivity.getBundleExtra("bundle");
 
             mMovie = bundle.getParcelable("movie");
 
-            getSupportActionBar().setTitle("Movie Details");
-            getSupportActionBar().setSubtitle(mMovie.getTitle());
+            displayMovieInfo();
 
-            // Bind movie data to the views
-            mDetailBinding.titleTv.setText(mMovie.getTitle());
-            mDetailBinding.releaseDateTv.setText(mMovie.getReleaseDate());
-            mDetailBinding.voteAverageTv.setText(String.valueOf(mMovie.getVoteAverage()));
-            mDetailBinding.tvPlotSynopsis.setText(mMovie.getOverview());
+            setupVideoTrailers();
+            new LoadVideoTrailersTask().execute(mMovie.getId());
 
-            String imageBackdropURL = BASE_URL + SIZE_LARGE + mMovie.getBackdropPath();
-            Picasso.get().load(imageBackdropURL).into(mDetailBinding.movieBackdropIv);
-
-            // COMPLETE: placeholder() and error() accept a drawable resource ID. CREATE a default image.
-            String imagePosterURL = BASE_URL + SIZE_SMALL + mMovie.getPosterPath();
-            Picasso.get().load(imagePosterURL).placeholder(R.mipmap.ic_launcher).error(R.drawable.offline).into(mDetailBinding.moviePosterIv);
-
-            if (!videoTrailersHaveBeenLoaded) {
-                loadVideoTrailers();
-            }
-
-            if (!userReviewsHaveBeenLoaded) {
-                loadUserReviews();
-            }
-
-            Log.i(TAG, "onCreate: ID=" + mMovie.getId());
-
-
-            // =========================================================================
-            // Sets the current state of isFavorite according to value in database.
-
-            Uri uri = ContentUris.withAppendedId(MovieEntry.CONTENT_URI, mMovie.getId());
-            String[] projection = null;
-            String selection = null;
-            String[] selectionArgs = null;
-            String sortOrder = null;
-
-            // Set selection
-            selection = MovieEntry._ID + " = " + mMovie.getId();
-
-            Cursor cursor = getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
-
-            cursor.moveToNext();
-
-            if (cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FAVORITE)) == 1) {
-                isFavorite = true;
-            } else {
-                isFavorite = false;
-            }
-
-            cursor.close();
-
+            setupUserReviews();
+            new LoadUserReviewsTask().execute(mMovie.getId());
         }
 
     }
+
+    // SAVE VideoTrailerList & UserReviewList on ROTATION so it doesn't make API Call!
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Log.i(TAG, "onSaveInstanceState: ");
+        outState.putParcelable("movie", mMovie);
+        outState.putParcelableArrayList("videoTrailerList", mVideoTrailerList);
+        outState.putParcelableArrayList("userReviewList", mUserReviewList);
+    }
+
+    private void displayMovieInfo() {
+
+        getSupportActionBar().setTitle("Movie Details");
+        getSupportActionBar().setSubtitle(mMovie.getTitle());
+
+        // Bind movie data to the views
+        mDetailBinding.titleTv.setText(mMovie.getTitle());
+        mDetailBinding.releaseDateTv.setText(mMovie.getReleaseDate());
+        mDetailBinding.voteAverageTv.setText(String.valueOf(mMovie.getVoteAverage()));
+        mDetailBinding.tvPlotSynopsis.setText(mMovie.getOverview());
+
+        String imageBackdropURL = BASE_URL + SIZE_LARGE + mMovie.getBackdropPath();
+        Picasso.get().load(imageBackdropURL).into(mDetailBinding.movieBackdropIv);
+
+        // COMPLETE: placeholder() and error() accept a drawable resource ID. CREATE a default image.
+        String imagePosterURL = BASE_URL + SIZE_SMALL + mMovie.getPosterPath();
+        Picasso.get().load(imagePosterURL).placeholder(R.mipmap.ic_launcher).error(R.drawable.offline).into(mDetailBinding.moviePosterIv);
+
+        // =========================================================================
+        // Sets the current state of isFavorite according to value in database.
+
+        Uri uri = ContentUris.withAppendedId(MovieEntry.CONTENT_URI, mMovie.getId());
+        String[] projection = null;
+        String selection = null;
+        String[] selectionArgs = null;
+        String sortOrder = null;
+
+        // Set selection
+        selection = MovieEntry._ID + " = " + mMovie.getId();
+
+        Cursor cursor = getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
+
+        cursor.moveToNext();
+
+        if (cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FAVORITE)) == 1) {
+            isFavorite = true;
+        } else {
+            isFavorite = false;
+        }
+
+        cursor.close();
+    }
+
 
     @Override
     public void onClick(VideoTrailer videoTrailer) {
@@ -162,7 +193,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         startActivity(intent);
     }
 
-    private void loadVideoTrailers() {
+    private void setupVideoTrailers() {
 
         mVideoRecyclerView = findViewById(R.id.trailers_recyclerView);
 
@@ -177,31 +208,23 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         // Initialize the video adapter and attach it to the RecyclerView
         mVideoAdapter = new VideoTrailerAdapter(this, this);
         mVideoRecyclerView.setAdapter(mVideoAdapter);
-
-        Log.i(TAG, "loadVideoTrailers: movieID=" + mMovie.getId());
-
-        new LoadVideoTrailersTask().execute(mMovie.getId());
     }
 
-    public class LoadVideoTrailersTask extends AsyncTask<Integer, Void, List<VideoTrailer>> {
+    public class LoadVideoTrailersTask extends AsyncTask<Integer, Void, ArrayList<VideoTrailer>> {
 
         @Override
-        protected List<VideoTrailer> doInBackground(Integer... params) {
+        protected ArrayList<VideoTrailer> doInBackground(Integer... params) {
             int movieId = params[0];
 
-            Log.i(TAG, "LoadVideoTrailersTask doInBackground: movieID=" + movieId);
-
-            List<VideoTrailer> videoTrailerList = null;
+            ArrayList<VideoTrailer> videoTrailerList = null;
 
             if (isNetworkAvailable(mContext)) {
-                Log.i(TAG, "Network is Available");
                 try {
                     videoTrailerList = MovieUtils.getVideoTrailerList(mContext, movieId);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             } else {
-                Log.i(TAG, "Network is NOT Available");
                 videoTrailerList = MovieUtils.getVideoTrailerListFromCursor(mContext, movieId);
             }
 
@@ -209,27 +232,17 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         }
 
         @Override
-        protected void onPostExecute(List<VideoTrailer> videoTrailerList) {
+        protected void onPostExecute(ArrayList<VideoTrailer> videoTrailerList) {
 
-            Log.i(TAG, "onPostExecute: ");
-            Log.i(TAG, "videoTrailerList.size()" + videoTrailerList.size());
+            // Save to store on rotation
+            mVideoTrailerList = videoTrailerList;
 
             // TO PREVENT ERROR WHEN NO INTERNET...
-            if (videoTrailerList == null) {
-                Toast.makeText(getApplicationContext(), R.string.msg_internet_connection, Toast.LENGTH_LONG).show();
-
-            } else {
-
-                Log.i(TAG, "videoTrailerList.toString(): " + videoTrailerList.toString());
-
-                Log.i(TAG, "movieList.size()" + videoTrailerList.size());
-
-                final ListIterator<VideoTrailer> listIterator = videoTrailerList.listIterator();
+            if (videoTrailerList != null) {
 
                 videoTrailerIsAvailableToShare = false;
 
-                while (listIterator.hasNext()) {
-                    VideoTrailer videoTrailer = listIterator.next();
+                for (VideoTrailer videoTrailer : videoTrailerList) {
 
                     if (!videoTrailerIsAvailableToShare && videoTrailer.getType().contentEquals("Trailer")) {
 
@@ -240,25 +253,18 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
                         videoTrailerIsAvailableToShare = true;
                     }
 
-                    Log.i(TAG, "listIterator: " + videoTrailer.getId() + " " + videoTrailer.getName() + " " + videoTrailer.getSite() + " " + videoTrailer.getType());
-                }
+                 }
 
                 mVideoAdapter.loadVideoTrailers(videoTrailerList);
                 mVideoAdapter.notifyDataSetChanged();
 
-                if (videoTrailerList.size() > 0) {
-                    videoTrailersHaveBeenLoaded = true;
-                }
-
-                Log.i(TAG, "moviesHaveBeenLoaded: " + videoTrailersHaveBeenLoaded);
             }
 
         }
 
     }
 
-    private void loadUserReviews() {
-
+    private void setupUserReviews() {
         mReviewRecyclerView = findViewById(R.id.reviews_recyclerView);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -272,19 +278,15 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         // Initialize the video adapter and attach it to the RecyclerView
         mReviewAdapter = new UserReviewAdapter(this);
         mReviewRecyclerView.setAdapter(mReviewAdapter);
-
-        Log.i(TAG, "loadVideoTrailers: movieID=" + mMovie.getId());
-
-        new LoadUserReviewsTask().execute(mMovie.getId());
     }
 
-    public class LoadUserReviewsTask extends AsyncTask<Integer, Void, List<UserReview>> {
+    public class LoadUserReviewsTask extends AsyncTask<Integer, Void, ArrayList<UserReview>> {
 
         @Override
-        protected List<UserReview> doInBackground(Integer... params) {
+        protected ArrayList<UserReview> doInBackground(Integer... params) {
             int movieId = params[0];
 
-            List<UserReview> userReviewList = null;
+            ArrayList<UserReview> userReviewList = null;
 
             if (isNetworkAvailable(mContext)) {
                 Log.i(TAG, "Network is Available");
@@ -302,34 +304,16 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         }
 
         @Override
-        protected void onPostExecute(List<UserReview> userReviewList) {
+        protected void onPostExecute(ArrayList<UserReview> userReviewList) {
+
+            // Save to store on rotation
+            mUserReviewList = userReviewList;
 
             // TO PREVENT ERROR WHEN NO INTERNET...
-            if (userReviewList == null) {
-                Toast.makeText(getApplicationContext(), R.string.msg_internet_connection, Toast.LENGTH_LONG).show();
-
-            } else {
-
-                Log.i(TAG, "userReviewList.toString(): " + userReviewList.toString());
-
-                Log.i(TAG, "userReviewList.size()" + userReviewList.size());
-
-                final ListIterator<UserReview> listIterator = userReviewList.listIterator();
-
-                while (listIterator.hasNext()) {
-                    UserReview userReview = listIterator.next();
-
-                    Log.i(TAG, "listIterator: " + userReview.getId() + " " + userReview.getAuthor());
-                }
+            if (userReviewList != null) {
 
                 mReviewAdapter.loadUserReviews(userReviewList);
                 mReviewAdapter.notifyDataSetChanged();
-
-                if (userReviewList.size() > 0) {
-                    userReviewsHaveBeenLoaded = true;
-                }
-
-                Log.i(TAG, "userReviewsHaveBeenLoaded: =" + userReviewsHaveBeenLoaded);
             }
 
         }

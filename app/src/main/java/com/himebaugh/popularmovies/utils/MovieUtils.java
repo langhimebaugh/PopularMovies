@@ -487,11 +487,11 @@ public class MovieUtils {
 
     // ==========VideoTrailerList=Start====================================================
 
-    public static List<VideoTrailer> getVideoTrailerList(Context context, int movieId) throws IOException {
+    public static ArrayList<VideoTrailer> getVideoTrailerList(Context context, int movieId) throws IOException {
 
         Log.i(TAG, "getVideoTrailerList: ");
 
-        List<VideoTrailer> returnVideoTrailerList;
+        ArrayList<VideoTrailer> returnVideoTrailerList;
 
         // To fetch trailers you will want to make a request to the videos endpoint
         // http://api.themoviedb.org/3/movie/{id}/videos?api_key=<YOUR-API-KEY>
@@ -516,7 +516,7 @@ public class MovieUtils {
 
             String videoTrailerJsonResults = gson.toJson(map.get("results"));
 
-            Type listType = new TypeToken<List<VideoTrailer>>() {
+            Type listType = new TypeToken<ArrayList<VideoTrailer>>() {
             }.getType();
 
             // Now Gson converts the json to a list of video trailers object based on the VideoTrailer class
@@ -535,11 +535,11 @@ public class MovieUtils {
         return returnVideoTrailerList;
     }
 
-    public static List<VideoTrailer> getVideoTrailerListFromCursor(Context context, int movieId) {
+    public static ArrayList<VideoTrailer> getVideoTrailerListFromCursor(Context context, int movieId) {
 
         Log.i(TAG, "getVideoTrailerListFromCursor: ");
 
-        List<VideoTrailer> returnVideoTrailerList = new ArrayList<>();
+        ArrayList<VideoTrailer> returnVideoTrailerList = new ArrayList<>();
 
         Uri uri = VideoTrailerEntry.CONTENT_URI;
         String[] projection = null;
@@ -585,7 +585,7 @@ public class MovieUtils {
         return returnVideoTrailerList;
     }
 
-    private static void saveVideoTrailerListToCursor(Context context, List<VideoTrailer> videoTrailerList, int movieId) {
+    private static void saveVideoTrailerListToCursor(Context context, ArrayList<VideoTrailer> videoTrailerList, int movieId) {
 
         Log.i(TAG, "saveVideoTrailerListToCursor: ");
 
@@ -619,11 +619,11 @@ public class MovieUtils {
 
     // ==========UserReviewList=Start====================================================
 
-    public static List<UserReview> getUserReviewList(Context context, int movieId) throws IOException {
+    public static ArrayList<UserReview> getUserReviewList(Context context, int movieId) throws IOException {
 
         Log.i(TAG, "getUserReviewList: ");
 
-        List<UserReview> returnUserReviewList;
+        ArrayList<UserReview> returnUserReviewList;
 
         // To fetch reviews you will want to make a request to the reviews endpoint
         // http://api.themoviedb.org/3/movie/{id}/reviews?api_key=<YOUR-API-KEY>
@@ -649,7 +649,7 @@ public class MovieUtils {
             }.getType());
             String userReviewJsonResults = gson.toJson(map.get("results"));
 
-            Type listType = new TypeToken<List<UserReview>>() {
+            Type listType = new TypeToken<ArrayList<UserReview>>() {
             }.getType();
 
             // Now Gson converts the json to a list of user review objects based on the UserReview class
@@ -668,11 +668,11 @@ public class MovieUtils {
         return returnUserReviewList;
     }
 
-    public static List<UserReview> getUserReviewListFromCursor(Context context, int movieId) {
+    public static ArrayList<UserReview> getUserReviewListFromCursor(Context context, int movieId) {
 
         Log.i(TAG, "getUserReviewListFromCursor: ");
 
-        List<UserReview> returnUserReviewList = new ArrayList<>();
+        ArrayList<UserReview> returnUserReviewList = new ArrayList<>();
 
         Uri uri = UserReviewEntry.CONTENT_URI;
         String[] projection = null;
@@ -710,7 +710,7 @@ public class MovieUtils {
         return returnUserReviewList;
     }
 
-    private static void saveUserReviewListToCursor(Context context, List<UserReview> userReviewList, int movieId) {
+    private static void saveUserReviewListToCursor(Context context, ArrayList<UserReview> userReviewList, int movieId) {
 
         Log.i(TAG, "saveUserReviewListToCursor: userReviewList.size()=" + userReviewList.size());
 
