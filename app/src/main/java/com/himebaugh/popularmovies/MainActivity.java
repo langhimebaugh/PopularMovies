@@ -28,14 +28,19 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private final static String TAG = MainActivity.class.getName();
 
-    private RecyclerView mRecyclerView;
+    private static final String MOVIE_LIST_KEY = "movieList";
+    private static final String MOVIE_KEY = "movie";
+    private static final String BUNDLE_KEY = "bundle";
+    private static final String POPULAR = "popular";
+    private static final String TOP_RATED = "top_rated";
+
     private MovieAdapter mAdapter;
     private Context mContext;
     private Boolean moviesHaveBeenLoaded = false;
 
-    GridLayoutManager layoutManager;
+    private String page = "1";
 
-    ArrayList<Movie> mMovieList;
+    private ArrayList<Movie> mMovieList;
     private int mFilter;
 
     @Override
@@ -47,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         mContext = this;
 
-        mRecyclerView = findViewById(R.id.recyclerView);
+        RecyclerView mRecyclerView = findViewById(R.id.recyclerView);
 
         // Get default sort/filter from SharedPreferences settings...
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -56,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         loadFilterFromPreferences(sharedPreferences);
 
         // CHANGE GRID SpanCount ON ROTATION
+        GridLayoutManager layoutManager;
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             layoutManager = new GridLayoutManager(this, 2);
         } else {
@@ -78,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
             Log.i(TAG, "onCreate: RESTORE FROM savedInstanceState");
 
-            mMovieList = savedInstanceState.getParcelableArrayList("movieList");
+            mMovieList = savedInstanceState.getParcelableArrayList(MOVIE_LIST_KEY);
 
             mAdapter.loadMovies(mMovieList);
             mAdapter.notifyDataSetChanged();
@@ -86,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         } else {
 
             if (!moviesHaveBeenLoaded) {
-                loadMovies(mFilter, "1");
+                loadMovies(mFilter, page);
             }
 
         }
@@ -98,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putParcelableArrayList("movieList", mMovieList);
+        outState.putParcelableArrayList(MOVIE_LIST_KEY, mMovieList);
     }
 
     @Override
@@ -113,11 +119,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         Class destinationActivity = DetailActivity.class;
         Intent intent = new Intent(context, destinationActivity);
         Bundle bundle = new Bundle();
-        bundle.putParcelable("movie", movie);
-        intent.putExtra("bundle", bundle);
-
-        // seemed simpler but this won't work...
-        // intent.putParcelableArrayListExtra("movie", movie);
+        bundle.putParcelable(MOVIE_KEY, movie);
+        intent.putExtra(BUNDLE_KEY, bundle);
 
         startActivity(intent);
     }
@@ -149,12 +152,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         Log.i(TAG, "loadFilterFromPreferences: ");
         String filter = sharedPreferences.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_value_popular));
 
-        if (filter.equals("popular")) {
-            mFilter = MovieUtils.FILTER_POPULAR;
-        } else if (filter.equals("top_rated")) {
-            mFilter = MovieUtils.FILTER_TOPRATED;
-        } else {
-            mFilter = MovieUtils.FILTER_FAVORITE;
+        switch (filter) {
+            case POPULAR:
+                mFilter = MovieUtils.FILTER_POPULAR;
+                break;
+            case TOP_RATED:
+                mFilter = MovieUtils.FILTER_TOPRATED;
+                break;
+            default:
+                mFilter = MovieUtils.FILTER_FAVORITE;
+                break;
         }
         Log.i(TAG, "loadFilterFromPreferences: mFilter =" + mFilter);
     }
@@ -164,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         loadFilterFromPreferences(sharedPreferences);
     }
 
-    public class MovieQueryTask extends AsyncTask<Integer, Void, ArrayList<Movie>> {
+    class MovieQueryTask extends AsyncTask<Integer, Void, ArrayList<Movie>> {
 
         @Override
         protected void onPreExecute() {
@@ -256,15 +263,15 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         switch (id) {
             case R.id.action_filter_popular:
                 mFilter = MovieUtils.FILTER_POPULAR;
-                loadMovies(mFilter, "1");
+                loadMovies(mFilter, page);
                 return true;
             case R.id.action_filter_top_rated:
                 mFilter = MovieUtils.FILTER_TOPRATED;
-                loadMovies(mFilter, "1");
+                loadMovies(mFilter, page);
                 return true;
             case R.id.action_filter_favorite:
                 mFilter = MovieUtils.FILTER_FAVORITE;
-                loadMovies(mFilter, "1");
+                loadMovies(mFilter, page);
                 return true;
             case R.id.action_settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
@@ -286,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         // If I favorite a movie in DetailActivity and then return to MainActivity,
         // re-loading movies here is the only way to see an update.
         // ...Unless I use a CursorLoader, but that won't meet rubric criteria.
-        loadMovies(mFilter, "1");
+        loadMovies(mFilter, page);
     }
 
     @Override
@@ -301,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             Log.i(TAG, "Internet Connection");
 
             if (!moviesHaveBeenLoaded) {
-                loadMovies(mFilter, "1");
+                loadMovies(mFilter, page);
             }
 
         } else if (!moviesHaveBeenLoaded) {
@@ -311,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
             Log.i(TAG, "No Internet Connection");
 
-            Toast.makeText(this, "No Internet Connection!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.msg_internet_connection, Toast.LENGTH_LONG).show();
         }
     }
 

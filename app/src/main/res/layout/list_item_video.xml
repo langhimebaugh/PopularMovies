@@ -27,6 +27,8 @@
         android:layout_marginTop="8dp"
         android:ellipsize="none"
         android:paddingEnd="32dp"
+        android:paddingStart="0dp"
+        android:paddingLeft="0dp"
         android:paddingRight="32dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintEnd_toEndOf="parent"

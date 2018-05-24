@@ -15,7 +15,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.himebaugh.popularmovies.adapter.UserReviewAdapter;
 import com.himebaugh.popularmovies.adapter.VideoTrailerAdapter;
@@ -27,10 +26,7 @@ import com.himebaugh.popularmovies.model.VideoTrailer;
 import com.himebaugh.popularmovies.utils.MovieUtils;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
 
 import static com.himebaugh.popularmovies.utils.NetworkUtil.isNetworkAvailable;
 
@@ -55,9 +51,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     // backdrop_path
     // http://image.tmdb.org/t/p/w500/9ywA15OAiwjSTvg3cBs9B7kOCBF.jpg
 
-    private RecyclerView mVideoRecyclerView;
     private VideoTrailerAdapter mVideoAdapter;
-    private RecyclerView mReviewRecyclerView;
     private UserReviewAdapter mReviewAdapter;
 
     private Boolean isFavorite = false;
@@ -172,11 +166,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
         cursor.moveToNext();
 
-        if (cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FAVORITE)) == 1) {
-            isFavorite = true;
-        } else {
-            isFavorite = false;
-        }
+        isFavorite = cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FAVORITE)) == 1;
 
         cursor.close();
     }
@@ -195,7 +185,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
     private void setupVideoTrailers() {
 
-        mVideoRecyclerView = findViewById(R.id.trailers_recyclerView);
+        RecyclerView mVideoRecyclerView = findViewById(R.id.trailers_recyclerView);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -219,11 +209,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
             ArrayList<VideoTrailer> videoTrailerList = null;
 
             if (isNetworkAvailable(mContext)) {
-                try {
-                    videoTrailerList = MovieUtils.getVideoTrailerList(mContext, movieId);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                videoTrailerList = MovieUtils.getVideoTrailerList(mContext, movieId);
             } else {
                 videoTrailerList = MovieUtils.getVideoTrailerListFromCursor(mContext, movieId);
             }
@@ -253,7 +239,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
                         videoTrailerIsAvailableToShare = true;
                     }
 
-                 }
+                }
 
                 mVideoAdapter.loadVideoTrailers(videoTrailerList);
                 mVideoAdapter.notifyDataSetChanged();
@@ -265,7 +251,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     }
 
     private void setupUserReviews() {
-        mReviewRecyclerView = findViewById(R.id.reviews_recyclerView);
+        RecyclerView mReviewRecyclerView = findViewById(R.id.reviews_recyclerView);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -290,11 +276,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
             if (isNetworkAvailable(mContext)) {
                 Log.i(TAG, "Network is Available");
-                try {
-                    userReviewList = MovieUtils.getUserReviewList(mContext, movieId);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                userReviewList = MovieUtils.getUserReviewList(mContext, movieId);
             } else {
                 Log.i(TAG, "Network is NOT Available");
                 userReviewList = MovieUtils.getUserReviewListFromCursor(mContext, movieId);

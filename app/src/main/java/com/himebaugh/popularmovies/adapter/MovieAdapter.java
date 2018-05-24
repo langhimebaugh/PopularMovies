@@ -52,10 +52,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
     /**
      * Using this Method designed for Cursors to pass in List of Movies
      */
-    public List<Movie> loadMovies(List<Movie> movieList) {
+    public void loadMovies(List<Movie> movieList) {
         // check if this list is the same as the previous list (mMovieList)
         if (mMovieList == movieList) {
-            return null; // bc nothing has changed
+            return; // bc nothing has changed
         }
         List<Movie> temp = mMovieList;
         mMovieList = movieList; // new list value assigned
@@ -64,7 +64,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ListItemView
         if (movieList != null) {
             this.notifyDataSetChanged();
         }
-        return temp;
     }
 
     @NonNull

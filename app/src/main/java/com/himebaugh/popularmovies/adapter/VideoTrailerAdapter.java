@@ -36,10 +36,10 @@ public class VideoTrailerAdapter extends RecyclerView.Adapter<VideoTrailerAdapte
     /**
      * Using this Method designed for Cursors to pass in List of Movies
      */
-    public List<VideoTrailer> loadVideoTrailers(List<VideoTrailer> videoTrailerList) {
+    public void loadVideoTrailers(List<VideoTrailer> videoTrailerList) {
         // check if this cursor is the same as the previous cursor (mCursor)
         if (mVideoTrailerList == videoTrailerList) {
-            return null; // bc nothing has changed
+            return; // bc nothing has changed
         }
         List<VideoTrailer> temp = mVideoTrailerList;
         mVideoTrailerList = videoTrailerList; // new cursor value assigned
@@ -48,7 +48,6 @@ public class VideoTrailerAdapter extends RecyclerView.Adapter<VideoTrailerAdapte
         if (videoTrailerList != null) {
             this.notifyDataSetChanged();
         }
-        return temp;
     }
 
     @NonNull

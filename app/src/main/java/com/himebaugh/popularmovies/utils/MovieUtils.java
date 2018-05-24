@@ -25,7 +25,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -188,9 +187,8 @@ public class MovieUtils {
      *
      * @param url The URL to fetch the HTTP response from.
      * @return The contents of the HTTP response.
-     * @throws IOException Related to network and stream reading
      */
-    public static String getJsonFromOkHttpClient(URL url) throws IOException {
+    public static String getJsonFromOkHttpClient(URL url) {
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -487,7 +485,7 @@ public class MovieUtils {
 
     // ==========VideoTrailerList=Start====================================================
 
-    public static ArrayList<VideoTrailer> getVideoTrailerList(Context context, int movieId) throws IOException {
+    public static ArrayList<VideoTrailer> getVideoTrailerList(Context context, int movieId) {
 
         Log.i(TAG, "getVideoTrailerList: ");
 
@@ -619,7 +617,7 @@ public class MovieUtils {
 
     // ==========UserReviewList=Start====================================================
 
-    public static ArrayList<UserReview> getUserReviewList(Context context, int movieId) throws IOException {
+    public static ArrayList<UserReview> getUserReviewList(Context context, int movieId) {
 
         Log.i(TAG, "getUserReviewList: ");
 
