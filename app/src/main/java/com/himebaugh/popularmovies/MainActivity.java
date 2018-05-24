@@ -48,8 +48,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.i(TAG, "onCreate: ");
-
         mContext = this;
 
         RecyclerView mRecyclerView = findViewById(R.id.recyclerView);
@@ -76,14 +74,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         mAdapter = new MovieAdapter(this, this);
         mRecyclerView.setAdapter(mAdapter);
 
-        Log.i(TAG, "onCreate - moviesHaveBeenLoaded: " + moviesHaveBeenLoaded);
-
         if (savedInstanceState != null) {
 
             // use MovieList from savedInstanceState to avoid making an API Call!
-
-            Log.i(TAG, "onCreate: RESTORE FROM savedInstanceState");
-
             mMovieList = savedInstanceState.getParcelableArrayList(MOVIE_LIST_KEY);
 
             mAdapter.loadMovies(mMovieList);
@@ -112,9 +105,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         Context context = this;
 
-        Log.i(TAG, "onClick: " + movie.getTitle());
-        Log.i(TAG, "onClick: " + movie.getId());
-
         // Launch the DetailActivity using an explicit Intent
         Class destinationActivity = DetailActivity.class;
         Intent intent = new Intent(context, destinationActivity);
@@ -126,8 +116,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     private void loadMovies(int filter, String page) {
-
-        Log.i(TAG, "loadMovies: ");
 
         // Change subtitle as necessary
         switch (filter) {
@@ -149,7 +137,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private void loadFilterFromPreferences(SharedPreferences sharedPreferences) {
 
-        Log.i(TAG, "loadFilterFromPreferences: ");
         String filter = sharedPreferences.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_value_popular));
 
         switch (filter) {
@@ -163,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 mFilter = MovieUtils.FILTER_FAVORITE;
                 break;
         }
-        Log.i(TAG, "loadFilterFromPreferences: mFilter =" + mFilter);
     }
 
     @Override
@@ -181,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         @Override
         protected ArrayList<Movie> doInBackground(Integer... params) {
-            Log.i(TAG, "doInBackground: ");
+
             int filter = params[0];
 
             ArrayList<Movie> movieList = null;
@@ -190,19 +176,19 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 case MovieUtils.FILTER_POPULAR:
                 case MovieUtils.FILTER_TOPRATED:
                     if (isNetworkAvailable(mContext)) {
-                        Log.i(TAG, "Network Available make API call");
+                        // Network Available make API call
                         try {
                             movieList = MovieUtils.getMovieList(mContext, filter);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     } else {
-                        Log.i(TAG, "Network NOT Available load from database");
+                        // Network NOT Available load from database
                         movieList = MovieUtils.getMovieListFromCursor(mContext, filter);
                     }
                     break;
                 case MovieUtils.FILTER_FAVORITE:
-                    Log.i(TAG, "Load Favorites from database");
+                    // Load Favorites from database
                     movieList = MovieUtils.getMovieListFromCursor(mContext, filter);
                     break;
                 default:
@@ -219,10 +205,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             // Save to store on rotation
             mMovieList = movieList;
 
-            Log.i(TAG, "onPostExecute: ");
-
-            Log.i(TAG, "movieList.size()" + movieList.size());
-
             // TO PREVENT ERROR WHEN NO INTERNET...
             if (movieList == null) {
 
@@ -236,8 +218,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 if (mMovieList.size() > 0) {
                     moviesHaveBeenLoaded = true;
                 }
-
-                Log.i(TAG, "moviesHaveBeenLoaded: " + moviesHaveBeenLoaded);
             }
 
         }
@@ -287,7 +267,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onResume() {
         super.onResume();
-        Log.i(TAG, "onResume: ");
 
         // Need to reload movies, just in-case they have changed...
         // If I favorite a movie in DetailActivity and then return to MainActivity,
@@ -299,13 +278,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onPause() {
         super.onPause();
-        Log.i(TAG, "onPause: ");
     }
 
     private void showConnectivityStatus(boolean isNetworkAvailable) {
         if (isNetworkAvailable) {
-
-            Log.i(TAG, "Internet Connection");
 
             if (!moviesHaveBeenLoaded) {
                 loadMovies(mFilter, page);
@@ -315,9 +291,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
             // Display a Toast that the internet is down...
             // But only if no movies are displayed and there is no internet connection.
-
-            Log.i(TAG, "No Internet Connection");
-
             Toast.makeText(this, R.string.msg_internet_connection, Toast.LENGTH_LONG).show();
         }
     }

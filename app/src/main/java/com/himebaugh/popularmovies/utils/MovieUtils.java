@@ -74,8 +74,6 @@ public class MovieUtils {
      */
     private static URL buildEndpointUrl(Context context, String movieID, String endPoint) {
 
-        Log.i(TAG, "buildEndpointUrl: ");
-
         // http://api.themoviedb.org/3/movie/278/videos?api_key=<YOUR-API-KEY>
 
         String baseUrl = "https://api.themoviedb.org/3/movie/";
@@ -84,8 +82,6 @@ public class MovieUtils {
 
         // Reading API KEY from text file on gitignore list
         String apiKey = readRawTextFile(context, R.raw.api_key);
-
-        Log.i(TAG, "buildUrl: apiKey=" + apiKey);
 
         Uri builtUri = Uri.parse(movieDatabaseUrl).buildUpon()
                 .appendQueryParameter(PARAM_APIKEY, apiKey)
@@ -109,13 +105,8 @@ public class MovieUtils {
      */
     private static URL buildUrl(Context context, String movieDatabaseUrl, String page) {
 
-        Log.i(TAG, "buildUrl: ");
-
         // Reading API KEY from text file on gitignore list
         String apiKey = readRawTextFile(context, R.raw.api_key);
-
-        Log.i(TAG, "buildUrl: apiKey=" + apiKey);
-        Log.i(TAG, "movieDatabaseUrl: " + movieDatabaseUrl);
 
         Uri builtUri = Uri.parse(movieDatabaseUrl).buildUpon()
                 .appendQueryParameter(PARAM_PAGE, page)
@@ -155,8 +146,6 @@ public class MovieUtils {
      * @return The contents of the HTTP response.
      */
     private static String getJsonFromHttpUrl(URL url) {
-
-        Log.i(TAG, "getJsonFromHttpUrl: ");
 
         String jsonString = null;
 
@@ -214,8 +203,6 @@ public class MovieUtils {
 
     public static ArrayList<Movie> getMovieList(Context context, int filter) throws IOException {
 
-        Log.i(TAG, "getMovieList: ");
-
         ArrayList<Movie> returnMovieList;
 
         URL queryUrl;
@@ -247,7 +234,6 @@ public class MovieUtils {
         switch (filter) {
             case MovieUtils.FILTER_FAVORITE:
 
-                Log.i(TAG, "case MovieUtils.FILTER_FAVORITE: ");
                 // ***********************************************************
                 // Get MovieList from database via the MovieProvider
                 // ***********************************************************
@@ -256,8 +242,6 @@ public class MovieUtils {
                 break;
             case MovieUtils.FILTER_POPULAR:
 
-                Log.i(TAG, "case MovieUtils.FILTER_POPULAR: ");
-
                 queryUrl = MovieUtils.buildUrl(context, MovieUtils.POPULAR_MOVIES, page);
 
                 // Can use either one... getJsonFromHttpUrl() -OR- getJsonFromOkHttpClient()
@@ -265,8 +249,6 @@ public class MovieUtils {
                 // String popularMoviesJsonResults = getJsonFromOkHttpClient(queryUrl);  // This Works Fine
 
                 if (popularMoviesJsonResults == null) {
-
-                    Log.i(TAG, "INTERNET IS DOWN - FILTER_POPULAR");
 
                     // ***********************************************************
                     // INTERNET IS DOWN, so get MovieList from database
@@ -296,8 +278,6 @@ public class MovieUtils {
                 break;
             case MovieUtils.FILTER_TOPRATED:
 
-                Log.i(TAG, "case MovieUtils.FILTER_TOPRATED: ");
-
                 queryUrl = MovieUtils.buildUrl(context, MovieUtils.TOPRATED_MOVIES, page);
 
                 // Can use either one... getJsonFromHttpUrl() -OR- getJsonFromOkHttpClient()
@@ -305,8 +285,6 @@ public class MovieUtils {
                 String topratedMoviesJsonResults = getJsonFromOkHttpClient(queryUrl);  // This Works Fine
 
                 if (topratedMoviesJsonResults == null) {
-
-                    Log.i(TAG, "INTERNET IS DOWN - FILTER_TOPRATED");
 
                     // ***********************************************************
                     // INTERNET IS DOWN, so get MovieList from database
@@ -345,8 +323,6 @@ public class MovieUtils {
 
     public static ArrayList<Movie> getMovieListFromCursor(Context context, int filter) {
 
-        Log.i(TAG, "getMovieListFromCursor: ");
-
         ArrayList<Movie> returnMovieList = new ArrayList<>();
 
         Uri uri = MovieEntry.CONTENT_URI;
@@ -374,8 +350,6 @@ public class MovieUtils {
         }
 
         Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
-
-        Log.i(TAG, "getMovieListFromCursor: COUNT=" + cursor.getCount());
 
         // iterate over cursor to load into List
         while (cursor.moveToNext()) {
@@ -431,15 +405,11 @@ public class MovieUtils {
             clearAllButFavorites(context, filter);
         }
 
-        Log.i(TAG, "saveMovieListToCursor: ");
-
         Uri uri = MovieEntry.CONTENT_URI;
 
         ContentValues[] bulkMovieValues = new ContentValues[movieList.size()];
 
         for (int i = 0; i < movieList.size(); i++) {
-
-            Log.i(TAG, "saveMovieListToCursor: i = " + i);
 
             ContentValues movieValues = new ContentValues();
 
@@ -479,15 +449,11 @@ public class MovieUtils {
         }
 
         int recordsInserted = context.getContentResolver().bulkInsert(uri, bulkMovieValues);
-
-        Log.i(TAG, "saveMovieListToCursor: Records Inserted = " + recordsInserted);
     }
 
     // ==========VideoTrailerList=Start====================================================
 
     public static ArrayList<VideoTrailer> getVideoTrailerList(Context context, int movieId) {
-
-        Log.i(TAG, "getVideoTrailerList: ");
 
         ArrayList<VideoTrailer> returnVideoTrailerList;
 
@@ -535,8 +501,6 @@ public class MovieUtils {
 
     public static ArrayList<VideoTrailer> getVideoTrailerListFromCursor(Context context, int movieId) {
 
-        Log.i(TAG, "getVideoTrailerListFromCursor: ");
-
         ArrayList<VideoTrailer> returnVideoTrailerList = new ArrayList<>();
 
         Uri uri = VideoTrailerEntry.CONTENT_URI;
@@ -549,8 +513,6 @@ public class MovieUtils {
         selection = VideoTrailerEntry.COLUMN_MOVIE_ID + " = " + movieId;
 
         Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
-
-        Log.i(TAG, "getVideoTrailerListFromCursor: COUNT=" + cursor.getCount());
 
         // iterate over cursor to load into List
         while (cursor.moveToNext()) {
@@ -585,15 +547,11 @@ public class MovieUtils {
 
     private static void saveVideoTrailerListToCursor(Context context, ArrayList<VideoTrailer> videoTrailerList, int movieId) {
 
-        Log.i(TAG, "saveVideoTrailerListToCursor: ");
-
         Uri uri = VideoTrailerEntry.CONTENT_URI;
 
         ContentValues[] bulkVideoTrailerValues = new ContentValues[videoTrailerList.size()];
 
         for (int i = 0; i < videoTrailerList.size(); i++) {
-
-            Log.i(TAG, "saveVideoTrailerListToCursor: i = " + i);
 
             ContentValues videoTrailerValues = new ContentValues();
 
@@ -611,15 +569,11 @@ public class MovieUtils {
         }
 
         int recordsInserted = context.getContentResolver().bulkInsert(uri, bulkVideoTrailerValues);
-
-        Log.i(TAG, "saveVideoTrailerListToCursor: Records Inserted = " + recordsInserted);
     }
 
     // ==========UserReviewList=Start====================================================
 
     public static ArrayList<UserReview> getUserReviewList(Context context, int movieId) {
-
-        Log.i(TAG, "getUserReviewList: ");
 
         ArrayList<UserReview> returnUserReviewList;
 
@@ -668,8 +622,6 @@ public class MovieUtils {
 
     public static ArrayList<UserReview> getUserReviewListFromCursor(Context context, int movieId) {
 
-        Log.i(TAG, "getUserReviewListFromCursor: ");
-
         ArrayList<UserReview> returnUserReviewList = new ArrayList<>();
 
         Uri uri = UserReviewEntry.CONTENT_URI;
@@ -682,8 +634,6 @@ public class MovieUtils {
         selection = UserReviewEntry.COLUMN_MOVIE_ID + " = " + movieId;
 
         Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
-
-        Log.i(TAG, "getUserReviewListFromCursor: COUNT=" + cursor.getCount());
 
         // iterate over cursor to load into List
         while (cursor.moveToNext()) {
@@ -710,15 +660,11 @@ public class MovieUtils {
 
     private static void saveUserReviewListToCursor(Context context, ArrayList<UserReview> userReviewList, int movieId) {
 
-        Log.i(TAG, "saveUserReviewListToCursor: userReviewList.size()=" + userReviewList.size());
-
         Uri uri = UserReviewEntry.CONTENT_URI;
 
         ContentValues[] bulkUserReviewValues = new ContentValues[userReviewList.size()];
 
         for (int i = 0; i < userReviewList.size(); i++) {
-
-            Log.i(TAG, "saveUserReviewListToCursor: i = " + i);
 
             ContentValues userReviewValues = new ContentValues();
 
@@ -732,13 +678,9 @@ public class MovieUtils {
         }
 
         int recordsInserted = context.getContentResolver().bulkInsert(uri, bulkUserReviewValues);
-
-        Log.i(TAG, "saveUserReviewListToCursor: Records Inserted = " + recordsInserted);
     }
 
     public static void clearAllButFavorites(Context context, int filter) {
-
-        Log.i(TAG, "clearAllButFavorites: ");
 
         Uri uri = null;
         String[] projection = null;
@@ -749,16 +691,13 @@ public class MovieUtils {
 
 //        uri = UserReviewEntry.CONTENT_URI;
 //        recordDeleted = context.getContentResolver().delete(uri,selection,selectionArgs);
-//        Log.i(TAG, "clearAllButFavorites: UserReview recordDeleted =" + recordDeleted);
 //
 //        uri = VideoTrailerEntry.CONTENT_URI;
 //        recordDeleted = context.getContentResolver().delete(uri,selection,selectionArgs);
-//        Log.i(TAG, "clearAllButFavorites: VideoTrailer recordDeleted =" + recordDeleted);
 
         uri = MovieEntry.CONTENT_URI;
         selection = MovieEntry.COLUMN_CATEGORY + " = " + filter + " AND " + MovieEntry.COLUMN_FAVORITE + " != 1"; // Set selection where not = favorites
         recordDeleted = context.getContentResolver().delete(uri, selection, selectionArgs);
-        Log.i(TAG, "clearAllButFavorites: MovieEntry recordDeleted =" + recordDeleted);
     }
 
 }

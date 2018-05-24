@@ -235,7 +235,7 @@ public class MovieProvider extends ContentProvider {
                 if (id > 0) {
                     returnUri = ContentUris.withAppendedId(UserReviewEntry.CONTENT_URI, id);
                 } else {
-                    Log.i(TAG, "LANG User values=" + values.toString());
+
                     returnUri = null;
                     // UNIQUE ON CONFLICT IGNORE will trigger exception below if can't insert...
                     //throw new android.database.SQLException("Failed to insert row into " + uri);
@@ -249,7 +249,7 @@ public class MovieProvider extends ContentProvider {
                 if (id > 0) {
                     returnUri = ContentUris.withAppendedId(VideoTrailerEntry.CONTENT_URI, id);
                 } else {
-                    Log.i(TAG, "LANG Video values=" + values.toString());
+
                     returnUri = null;
                     // UNIQUE ON CONFLICT IGNORE will trigger exception below if can't insert...
                     //throw new android.database.SQLException("Failed to insert row into " + uri);
@@ -383,8 +383,6 @@ public class MovieProvider extends ContentProvider {
     @Override
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
 
-        Log.i(TAG, "bulkInsert: ");
-
         // Get access to the database and write URI matching code to recognize a single item
         SQLiteDatabase db = mMovieDbHelper.getWritableDatabase();
 
@@ -395,8 +393,6 @@ public class MovieProvider extends ContentProvider {
                 int rowsInserted = 0;
                 try {
                     for (ContentValues value : values) {
-
-                        Log.i(TAG, "bulkInsert: FOR");
 
                         long id = db.insert(MovieEntry.TABLE_NAME, null, value);
                         if (id != -1) {
@@ -417,7 +413,7 @@ public class MovieProvider extends ContentProvider {
             default:
                 // This seems to properly insert Video Trailers by default!
                 // Maybe Movies doesn't require the above code!
-                Log.i(TAG, "bulkInsert: DEFAULT!!!");
+
                 return super.bulkInsert(uri, values);
         }
 

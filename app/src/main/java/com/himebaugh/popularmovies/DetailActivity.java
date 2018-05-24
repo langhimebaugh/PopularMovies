@@ -104,8 +104,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
         } else if (intentThatStartedThisActivity != null) {
 
-            Log.i(TAG, "onCreate: intentThatStartedThisActivity != null");
-
             Bundle bundle = intentThatStartedThisActivity.getBundleExtra("bundle");
 
             mMovie = bundle.getParcelable("movie");
@@ -126,7 +124,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        Log.i(TAG, "onSaveInstanceState: ");
         outState.putParcelable("movie", mMovie);
         outState.putParcelableArrayList("videoTrailerList", mVideoTrailerList);
         outState.putParcelableArrayList("userReviewList", mUserReviewList);
@@ -174,8 +171,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
     @Override
     public void onClick(VideoTrailer videoTrailer) {
-
-        Log.i(TAG, "onClick: " + videoTrailer.getName() + videoTrailer.getKey());
 
         // Launch YouTube
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + videoTrailer.getKey()));
@@ -275,10 +270,10 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
             ArrayList<UserReview> userReviewList = null;
 
             if (isNetworkAvailable(mContext)) {
-                Log.i(TAG, "Network is Available");
+                // Network is Available
                 userReviewList = MovieUtils.getUserReviewList(mContext, movieId);
             } else {
-                Log.i(TAG, "Network is NOT Available");
+                // Network is NOT Available
                 userReviewList = MovieUtils.getUserReviewListFromCursor(mContext, movieId);
             }
 
@@ -324,9 +319,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         int id = item.getItemId();
 
         // UI contains a settings menu to SHARE a movie or toggle FAVORITE on/off.
-
-        Log.i(TAG, "onOptionsItemSelected: ");
-
         switch (id) {
             case R.id.action_favorite_selected:
             case R.id.action_favorite_not_selected:
@@ -338,7 +330,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
             default:
                 return super.onOptionsItemSelected(item);
         }
-
     }
 
     private void shareMovie() {
@@ -362,8 +353,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     // Updates database record with the Movie Id passed in.
     private void toggleFavorite(int movieId) {
 
-        Log.i(TAG, "toggleFavorite: ");
-
         // toggle condition
         isFavorite = !isFavorite;
 
@@ -383,8 +372,6 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
         // getContentResolver().notify();
         getContentResolver().notifyChange(MovieEntry.CONTENT_URI, null);
-
-        Log.i(TAG, "toggleFavorite: rowsUpdated=" + rowsUpdated);
 
         if (rowsUpdated > 0) {
 
