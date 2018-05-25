@@ -37,6 +37,23 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     private static final String SIZE_SMALL = "w185"; //w500
     private static final String SIZE_LARGE = "w500";  //w780
 
+    private static final String MOVIE_KEY = "movie";
+    private static final String VIDEO_TRAILER_LIST_KEY = "videoTrailerList";
+    private static final String USER_REVIEW_LIST_KEY = "userReviewList";
+    private static final String BUNDLE = "bundle";
+    private static final String TRAILER = "Trailer";
+
+
+
+    private static final String TYPE_TEXT_PLAIN = "text/plain";
+    private static final String EMAIL_SUBJECT = "Check out ";
+
+
+    private static final String PLAY_YOUTUBE_URL = "https://www.youtube.com/watch?v=";
+    private static final String SHARE_YOUTUBE_URL = "http://www.youtube.com/watch";
+    private static final String PARAMETER_V = "v";
+    private static final String NEW_LINE = "\n";
+
     // COMPLETE: FAVORITES,
     // COMPLETE: Extend the favorites ContentProvider to store the movie poster, synopsis, user rating, and release date, and display them even when offline.
     // COMPLETE: Implement sharing functionality to allow the user to share the first trailer’s YouTube URL from the movie details screen.
@@ -89,24 +106,24 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         if (savedInstanceState != null) {
 
             // RESTORE FROM savedInstanceState"
-            mMovie = savedInstanceState.getParcelable("movie");
+            mMovie = savedInstanceState.getParcelable(MOVIE_KEY);
             displayMovieInfo();
 
-            mVideoTrailerList = savedInstanceState.getParcelableArrayList("videoTrailerList");
+            mVideoTrailerList = savedInstanceState.getParcelableArrayList(VIDEO_TRAILER_LIST_KEY);
             setupVideoTrailers();
             mVideoAdapter.loadVideoTrailers(mVideoTrailerList);
             mVideoAdapter.notifyDataSetChanged();
 
-            mUserReviewList = savedInstanceState.getParcelableArrayList("userReviewList");
+            mUserReviewList = savedInstanceState.getParcelableArrayList(USER_REVIEW_LIST_KEY);
             setupUserReviews();
             mReviewAdapter.loadUserReviews(mUserReviewList);
             mReviewAdapter.notifyDataSetChanged();
 
         } else if (intentThatStartedThisActivity != null) {
 
-            Bundle bundle = intentThatStartedThisActivity.getBundleExtra("bundle");
+            Bundle bundle = intentThatStartedThisActivity.getBundleExtra(BUNDLE);
 
-            mMovie = bundle.getParcelable("movie");
+            mMovie = bundle.getParcelable(MOVIE_KEY);
 
             displayMovieInfo();
 
@@ -124,14 +141,14 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putParcelable("movie", mMovie);
-        outState.putParcelableArrayList("videoTrailerList", mVideoTrailerList);
-        outState.putParcelableArrayList("userReviewList", mUserReviewList);
+        outState.putParcelable(MOVIE_KEY, mMovie);
+        outState.putParcelableArrayList(VIDEO_TRAILER_LIST_KEY, mVideoTrailerList);
+        outState.putParcelableArrayList(USER_REVIEW_LIST_KEY, mUserReviewList);
     }
 
     private void displayMovieInfo() {
 
-        getSupportActionBar().setTitle("Movie Details");
+        getSupportActionBar().setTitle( getString(R.string.title_activity_detail) );
         getSupportActionBar().setSubtitle(mMovie.getTitle());
 
         // Bind movie data to the views
@@ -173,7 +190,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     public void onClick(VideoTrailer videoTrailer) {
 
         // Launch YouTube
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + videoTrailer.getKey()));
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_YOUTUBE_URL + videoTrailer.getKey()));
 
         startActivity(intent);
     }
@@ -225,7 +242,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
                 for (VideoTrailer videoTrailer : videoTrailerList) {
 
-                    if (!videoTrailerIsAvailableToShare && videoTrailer.getType().contentEquals("Trailer")) {
+                    if (!videoTrailerIsAvailableToShare && videoTrailer.getType().contentEquals(TRAILER)) {
 
                         // Store the first VideoTrailer that "type" = "Trailer"
                         // Then flag as shareable to use in shareMovie()
@@ -335,12 +352,12 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     private void shareMovie() {
 
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Check out " + mMovie.getTitle());
+        shareIntent.setType(TYPE_TEXT_PLAIN);
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, EMAIL_SUBJECT + mMovie.getTitle());
 
         if (videoTrailerIsAvailableToShare) {
-            Uri videoUrl = Uri.parse("http://www.youtube.com/watch").buildUpon().appendQueryParameter("v", mVideoTrailer.getKey()).build();
-            shareIntent.putExtra(Intent.EXTRA_TEXT, videoUrl.toString() + "\n" + mMovie.getOverview());
+            Uri videoUrl = Uri.parse(SHARE_YOUTUBE_URL).buildUpon().appendQueryParameter(PARAMETER_V, mVideoTrailer.getKey()).build();
+            shareIntent.putExtra(Intent.EXTRA_TEXT, videoUrl.toString() + NEW_LINE + mMovie.getOverview());
         } else {
             shareIntent.putExtra(Intent.EXTRA_TEXT, mMovie.getOverview());
         }

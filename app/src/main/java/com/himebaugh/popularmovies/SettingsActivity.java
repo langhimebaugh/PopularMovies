@@ -16,7 +16,7 @@ public class SettingsActivity extends AppCompatActivity {
             // Implement Up Navigation - displays the back arrow in front of App icon in the Action Bar
             actionBar.setDisplayHomeAsUpEnabled(true);
 
-            actionBar.setTitle("Settings");
+            actionBar.setTitle(getString(R.string.title_activity_settings));
         }
 
         getSupportFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();

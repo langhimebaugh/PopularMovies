@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private static final String MOVIE_LIST_KEY = "movieList";
     private static final String MOVIE_KEY = "movie";
-    private static final String BUNDLE_KEY = "bundle";
+    private static final String BUNDLE = "bundle";
     private static final String POPULAR = "popular";
     private static final String TOP_RATED = "top_rated";
 
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         Intent intent = new Intent(context, destinationActivity);
         Bundle bundle = new Bundle();
         bundle.putParcelable(MOVIE_KEY, movie);
-        intent.putExtra(BUNDLE_KEY, bundle);
+        intent.putExtra(BUNDLE, bundle);
 
         startActivity(intent);
     }

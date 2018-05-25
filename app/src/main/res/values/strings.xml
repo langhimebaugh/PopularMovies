@@ -18,6 +18,7 @@
     <string name="label_reviews">Reviews: </string>
 
     <string name="msg_internet_connection">Check Internet Connection</string>
+    <string name="title_activity_detail">Movie Details</string>
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->

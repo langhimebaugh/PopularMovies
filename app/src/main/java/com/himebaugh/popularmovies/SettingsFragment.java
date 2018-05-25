@@ -13,6 +13,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
     private static final String TAG = SettingsFragment.class.getSimpleName();
 
+    private static final String EMPTY = "";
+
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
 
@@ -31,7 +33,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
             // You don't need to set up preference summaries for checkbox preferences because
             // they are already set up in xml using summaryOff and summary On
             if (!(preference instanceof CheckBoxPreference)) {
-                String value = sharedPreferences.getString(preference.getKey(), "");
+                String value = sharedPreferences.getString(preference.getKey(), EMPTY);
                 setPreferenceSummary(preference, value);
             }
         }
@@ -46,7 +48,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         if (preference != null) {
             // Updates the summary for the preference
             if (!(preference instanceof CheckBoxPreference)) {
-                String value = sharedPreferences.getString(preference.getKey(), "");
+                String value = sharedPreferences.getString(preference.getKey(), EMPTY);
                 setPreferenceSummary(preference, value);
             }
         }
