@@ -57,5 +57,6 @@
         <item>@string/pref_sort_value_top_rated</item>
         <item>@string/pref_sort_value_favorite</item>
     </array>
+    <string name="title_activity_async_task">AsyncTaskActivity</string>
 
 </resources>

@@ -9,9 +9,12 @@ import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -51,7 +54,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
     private static final String PLAY_YOUTUBE_URL = "https://www.youtube.com/watch?v=";
     private static final String SHARE_YOUTUBE_URL = "http://www.youtube.com/watch";
-    private static final String PARAMETER_V = "v";
+    private static final String SHARE_YOUTUBE_PARAMETER_V = "v";
     private static final String NEW_LINE = "\n";
 
     // COMPLETE: FAVORITES,
@@ -87,6 +90,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
     private Context mContext;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +100,9 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
         // Implement Up Navigation - displays the back arrow in front of App icon in the Action Bar
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        AppBarLayout appBarLayout = findViewById(R.id.app_bar);
+        appBarLayout.setExpanded(true);
 
         // Instantiate mDetailBinding using DataBindingUtil
         mDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
@@ -155,7 +162,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         mDetailBinding.titleTv.setText(mMovie.getTitle());
         mDetailBinding.releaseDateTv.setText(mMovie.getReleaseDate());
         mDetailBinding.voteAverageTv.setText(String.valueOf(mMovie.getVoteAverage()));
-        mDetailBinding.tvPlotSynopsis.setText(mMovie.getOverview());
+        mDetailBinding.plotSynopsisTv.setText(mMovie.getOverview());
 
         String imageBackdropURL = BASE_URL + SIZE_LARGE + mMovie.getBackdropPath();
         Picasso.get().load(imageBackdropURL).into(mDetailBinding.movieBackdropIv);
@@ -356,7 +363,7 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, EMAIL_SUBJECT + mMovie.getTitle());
 
         if (videoTrailerIsAvailableToShare) {
-            Uri videoUrl = Uri.parse(SHARE_YOUTUBE_URL).buildUpon().appendQueryParameter(PARAMETER_V, mVideoTrailer.getKey()).build();
+            Uri videoUrl = Uri.parse(SHARE_YOUTUBE_URL).buildUpon().appendQueryParameter(SHARE_YOUTUBE_PARAMETER_V, mVideoTrailer.getKey()).build();
             shareIntent.putExtra(Intent.EXTRA_TEXT, videoUrl.toString() + NEW_LINE + mMovie.getOverview());
         } else {
             shareIntent.putExtra(Intent.EXTRA_TEXT, mMovie.getOverview());
