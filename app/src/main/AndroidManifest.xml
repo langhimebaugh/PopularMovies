@@ -23,10 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Implement Up Navigation - makes the back arrow in front of App icon in the Action Bar work when clicked -->
+        <!-- Implement Up Navigation - makes the back arrow in front of App icon in the Action Bar work when clicked
+            AppTheme.NoActionBar necessary with CollapsingToolbarLayout to eliminate second toolbar -->
         <activity
             android:name=".DetailActivity"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity"/>

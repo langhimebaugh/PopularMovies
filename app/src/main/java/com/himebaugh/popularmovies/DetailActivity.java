@@ -6,10 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.databinding.DataBindingUtil;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -94,18 +96,16 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
-
-        mContext = this;
-
-        // Implement Up Navigation - displays the back arrow in front of App icon in the Action Bar
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        AppBarLayout appBarLayout = findViewById(R.id.app_bar);
-        appBarLayout.setExpanded(true);
 
         // Instantiate mDetailBinding using DataBindingUtil
         mDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
+
+        mContext = this;
+
+        setSupportActionBar(mDetailBinding.toolbarTb);
+
+        // Implement Up Navigation - displays the back arrow in front of App icon in the Action Bar
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
         Intent intentThatStartedThisActivity = getIntent();
@@ -155,8 +155,15 @@ public class DetailActivity extends AppCompatActivity implements VideoTrailerAda
 
     private void displayMovieInfo() {
 
-        getSupportActionBar().setTitle( getString(R.string.title_activity_detail) );
-        getSupportActionBar().setSubtitle(mMovie.getTitle());
+//        getSupportActionBar().setTitle( getString(R.string.title_activity_detail) );
+//        getSupportActionBar().setSubtitle(mMovie.getTitle());
+
+        CollapsingToolbarLayout toolbarLayout = findViewById(R.id.collapsing_toolbar);
+        toolbarLayout.setTitle(mMovie.getTitle());
+        toolbarLayout.setExpandedTitleColor(Color.WHITE);
+        toolbarLayout.setCollapsedTitleTextColor(Color.WHITE);
+        //toolbarLayout.setSubtitle(getString(R.string.title_activity_detail));
+
 
         // Bind movie data to the views
         mDetailBinding.titleTv.setText(mMovie.getTitle());
